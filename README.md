@@ -39,7 +39,3 @@ import Fetch from 'react-fetch-component'
   {/* ... */}
 </Fetch>
 ```
-
-## TODO
-- Tests
-- More examples
