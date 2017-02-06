@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 class Fetch extends Component {
-  state = { loading: true };
+  state = { loading: null };
 
   componentDidMount() {
     this.update();
@@ -17,15 +17,26 @@ class Fetch extends Component {
     let { url, options, as='json' } = this.props;
     this.setState({
       loading: true,
-      error: null,
-      request: { ...this.props }
+      request: { ...this.props },
     });
 
-    fetch(url, options)
-      .then(r => r[as]())
-      .then(
-        data  => this.setState({ loading: false, data }),
-        error => this.setState({ loading: false, error })
+    this.promise = fetch(url, options)
+      .then(response => {
+        return response[as]()
+          .then(data => {
+            return { response, data }
+          })
+          .catch(error => {
+            return { response, data: error }
+          })
+      })
+      .then(({ response, data }) => {
+          this.setState({
+            loading: false,
+            [response.ok ? 'data' : 'error']: data,
+            response
+          })
+        }
       )
   }
 

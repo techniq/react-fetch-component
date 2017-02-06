@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "devDependencies": {
     "babel-jest": "^18.0.0",
-    "jest": "^18.1.0"
     "babel-preset-react-app": "^2.0.1",
+    "enzyme": "^2.7.1",
+    "fetch-mock": "^5.9.3",
+    "jest": "^18.1.0",
+    "react-addons-test-utils": "^15.4.2"
   },
   "dependencies": {
     "react": "^15.4.2",
