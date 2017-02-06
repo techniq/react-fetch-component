@@ -1,6 +1,6 @@
 {
   "name": "react-fetch-component",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "devDependencies": {
     "babel-jest": "^18.0.0",
     "babel-preset-react-app": "^2.0.1",
