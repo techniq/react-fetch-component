@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 
 class Fetch extends Component {
   state = { loading: null };
+  cache = {};
 
   componentDidMount() {
     this.update();
@@ -14,30 +15,46 @@ class Fetch extends Component {
   }
 
   update() {
-    let { url, options, as='json' } = this.props;
-    this.setState({
-      loading: true,
-      request: { ...this.props },
-    });
+    let { url, options, as='json', cache } = this.props;
 
-    this.promise = fetch(url, options)
-      .then(response => {
-        return response[as]()
-          .then(data => {
-            return { response, data }
-          })
-          .catch(error => {
-            return { response, data: error }
-          })
-      })
-      .then(({ response, data }) => {
-          this.setState({
+    if (cache && this.cache[url]) {
+      // Restore cached state
+      this.promise = this.cache[url];
+      this.promise.then(cachedState => this.setState({
+        request: { ...this.props },
+        ...cachedState
+      }));
+    } else {
+      this.setState({
+        loading: true,
+        request: { ...this.props },
+      });
+
+      this.promise = fetch(url, options)
+        .then(response => {
+          return response[as]()
+            .then(data => {
+              return { response, data }
+            })
+            .catch(error => {
+              return { response, data: error }
+            })
+        })
+        .then(({ response, data }) => {
+          const newState = {
             loading: false,
             [response.ok ? 'data' : 'error']: data,
             response
-          })
-        }
-      )
+          }
+
+          this.setState(newState);
+          return newState;
+      })
+
+      if (cache) {
+        this.cache[url] = this.promise;
+      }
+    }
   }
 
   render() {
