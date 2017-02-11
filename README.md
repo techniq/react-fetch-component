@@ -73,4 +73,4 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
   - default: `false`
 
 ## See also
-- [react-odata](https://github.com/techniq/react-odata) - simplifies using `<Fetch />` for OData endpoints
+- [react-odata](https://github.com/techniq/react-odata) - uses `<Fetch />` for OData endpoints
