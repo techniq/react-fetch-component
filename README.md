@@ -42,7 +42,7 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
   - Will remain `undefined` if neither of the previous occur
 - `data`
   - Is `undefined` while request is pending
-  - Set to parsed response body (`json` by default) unless one of the conditions for `error` occur
+  - Set to parsed response body (`json` by default) unless one of the `error` conditions occur
 - `request`
   - Set to an object containing the props passed to the component (`url`, `options`, etc) when request is sent.
   - Added for convenience when `<Fetch />` is wrapped by your own data component (ex. `<UserData />`)
