@@ -2,7 +2,6 @@
 - Does not cache if not `cache` not set
 
 ## Features
-- License (add to README, etc)
 - Setup CI
 - PropTypes (include children as function) and/or Flow
 - Only cache on success?
