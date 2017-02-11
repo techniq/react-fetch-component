@@ -59,7 +59,8 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
 
 ## Props
 - `url` (string) - address of the request
-- `options` (object) - request options such as `method`, `headers`, `credentials`, etc.  See [Request properties](https://developer.mozilla.org/en-US/docs/Web/API/Request#Properties) for all available options.
+- `options` (object) - request options such as `method`, `headers`, `credentials`, etc.
+  - see [Request properties](https://developer.mozilla.org/en-US/docs/Web/API/Request#Properties) for all available options.
 - `as` - declare how to handle the response body
   - default: `json`
   - can be set to any [body method](https://developer.mozilla.org/en-US/docs/Web/API/Body#Methods) including:
