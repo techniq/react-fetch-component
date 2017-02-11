@@ -71,3 +71,6 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
     - `text`
 - `cache` (boolean) - Cache responses by url and will return from cache when re-requested (set url from state and change away and the back)` url away and then back)
   - default: `false`
+
+## See also
+- [react-odata](https://github.com/techniq/react-odata) - simplifies using `<Fetch />` for OData endpoints
