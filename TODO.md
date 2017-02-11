@@ -1,5 +1,5 @@
 ## Tests
-- Does not cache if not `cache` not set
+- Does not cache if `cache` not set
 
 ## Features
 - Setup CI
@@ -8,9 +8,8 @@
 - Support user supplied caches (prefilled cache objects, LRU cache, etc)
   - Maybe handle a function for the `cache` prop
 - Do not allow multiple inflight fetch requests?
-  - Debounce / throttle
+  - Add `debounce` / `throttle`
 
 ## Document
-- Default 'as' to 'json', other available options (text, arraybuffer, etc)
-- `cache` prop
+- Example wrapping <Fetch /> in own data component
 - More examples
