@@ -31,7 +31,7 @@ import Fetch from 'react-fetch-component'
 </Fetch>
 ``` 
 
-Function supplied as a child of `<Fetch />` will receive a single argument as object with the following properties
+Function supplied as a child of `<Fetch />` will receive a single argument as an object with the following properties
 - `loading`
   - Set to `true` while request is pending
   - Set to `false` once response has returned
