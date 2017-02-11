@@ -6,7 +6,7 @@ import Fetch from './Fetch';
 
 afterEach(fetchMock.restore);
 
-it('renders data on success', () => {
+it('sets data on success', () => {
   const data = { hello: 'world' };
   fetchMock.once('*', data);
 
@@ -32,7 +32,7 @@ it('renders data on success', () => {
   });
 });
 
-it('renders error on failure', () => {
+it('sets error on failure', () => {
   const error = { Error: 'BOOM!' };
   fetchMock.once('*', { status: 500, body: error });
 

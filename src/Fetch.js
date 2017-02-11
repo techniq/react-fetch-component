@@ -33,12 +33,8 @@ class Fetch extends Component {
       this.promise = fetch(url, options)
         .then(response => {
           return response[as]()
-            .then(data => {
-              return { response, data }
-            })
-            .catch(error => {
-              return { response, data: error }
-            })
+            .then(data   => ({ response, data }))
+            .catch(error => ({ response, data: error }))
         })
         .then(({ response, data }) => {
           const newState = {
