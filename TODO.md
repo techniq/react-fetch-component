@@ -9,6 +9,7 @@
   - Maybe handle a function for the `cache` prop
 - Do not allow multiple inflight fetch requests?
   - Add `debounce` / `throttle`
+- Setup UMD build
 
 ## Document
 - Example wrapping <Fetch /> in own data component
