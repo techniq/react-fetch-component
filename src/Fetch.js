@@ -5,27 +5,32 @@ class Fetch extends Component {
   cache = {};
 
   componentDidMount() {
-    this.update();
+    this.mounted = true;
+    this.fetch();
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.url !== prevProps.url) {
-      this.update();
+      this.fetch();
     }
   }
 
-  update() {
+  componentWillUnmount() {
+    this.mounted = false;
+  }
+
+  fetch() {
     let { url, options, as='json', cache } = this.props;
 
     if (cache && this.cache[url]) {
       // Restore cached state
       this.promise = this.cache[url];
-      this.promise.then(cachedState => this.setState({
+      this.promise.then(cachedState => this.setStateIfMounted({
         request: { ...this.props },
         ...cachedState
       }));
     } else {
-      this.setState({
+      this.setStateIfMounted({
         loading: true,
         request: { ...this.props },
       });
@@ -43,13 +48,20 @@ class Fetch extends Component {
             response
           }
 
-          this.setState(newState);
+          this.setStateIfMounted(newState);
           return newState;
       })
 
       if (cache) {
         this.cache[url] = this.promise;
       }
+    }
+  }
+
+  setStateIfMounted(nextState, callback) {
+    // Ignore passing state down if not longer mounted
+    if (this.mounted) {
+      this.setState(nextState, callback);
     }
   }
 

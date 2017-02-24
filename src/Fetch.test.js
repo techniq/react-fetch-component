@@ -91,4 +91,27 @@ it('returns cached result if set', () => {
   });
 });
 
+it('does not call setState if unmounted', () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
 
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch url="http://localhost">{mockHandler}</Fetch>);
+  const promise = wrapper.instance().promise;
+  wrapper.unmount();
+
+  return promise.then(() => {
+    // Once for initial and once for loading, but should not be called when the response is returned 
+    expect(mockHandler.mock.calls.length).toBe(2);
+
+    // Initial state
+    expect(mockHandler.mock.calls[0][0]).toEqual({ loading: null });
+
+    // Loading...
+    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    expect(fetchMock.called('*')).toBe(true);
+  });
+});
