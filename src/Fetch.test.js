@@ -20,13 +20,13 @@ it('sets data on success', () => {
     expect(mockHandler.mock.calls.length).toBe(3);
 
     // Initial state
-    expect(mockHandler.mock.calls[0][0]).toEqual({ loading:null });
+    expect(mockHandler.mock.calls[0][0]).toEqual({ loading: null });
 
     // Loading...
-    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading:true, request: {} });
+    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
 
     // Data loaded
-    expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading:false, data, request: {}, response: {} });
+    expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
 
     expect(fetchMock.called('*')).toBe(true);
   });
@@ -46,13 +46,13 @@ it('sets error on failure', () => {
     expect(mockHandler.mock.calls.length).toBe(3);
 
     // Initial state
-    expect(mockHandler.mock.calls[0][0]).toEqual({ loading:null });
+    expect(mockHandler.mock.calls[0][0]).toEqual({ loading: null });
 
     // Loading...
-    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading:true, request: {} });
+    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
 
     // Error returned
-    expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading:false, error, request: {}, response: {} });
+    expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, error, request: {}, response: {} });
 
     expect(fetchMock.called('*')).toBe(true);
   });
