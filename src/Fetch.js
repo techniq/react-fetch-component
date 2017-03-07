@@ -59,7 +59,7 @@ class Fetch extends Component {
   }
 
   setStateIfMounted(nextState, callback) {
-    // Ignore passing state down if not longer mounted
+    // Ignore passing state down if no longer mounted
     if (this.mounted) {
       this.setState(nextState, callback);
     }
