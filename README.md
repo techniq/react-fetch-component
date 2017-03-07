@@ -49,6 +49,8 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
 - `response`
   - Set to the [response](https://developer.mozilla.org/en-US/docs/Web/API/Response) of the `fetch` call
   - Useful to check the status code/text, headers, etc
+- `reload`
+  - Function that can be called to send a new fetch request (useful when last request had an error or you want to manually refresh the data)
 
 ### Include credentials
 ```js

@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 
 class Fetch extends Component {
-  state = { loading: null };
+  state = {
+    reload: this.fetch.bind(this),
+    loading: null 
+  };
   cache = {};
 
   componentDidMount() {
