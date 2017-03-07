@@ -6,7 +6,7 @@ import Fetch from './Fetch';
 
 afterEach(fetchMock.restore);
 
-it('sets data on success', () => {
+it('sets data on success', async () => {
   const data = { hello: 'world' };
   fetchMock.once('*', data);
 
@@ -14,25 +14,25 @@ it('sets data on success', () => {
   mockHandler.mockReturnValue(<div />)
 
   const wrapper = mount(<Fetch url="http://localhost">{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
 
-  return wrapper.instance().promise.then(() => {
-    // Once for initial, once for loading, and once for response
-    expect(mockHandler.mock.calls.length).toBe(3);
+  await instance.promise;
+  // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(3);
 
-    // Initial state
-    expect(mockHandler.mock.calls[0][0]).toEqual({ loading: null });
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
 
-    // Loading...
-    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  // Loading...
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
 
-    // Data loaded
-    expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+  // Data loaded
+  expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
 
-    expect(fetchMock.called('*')).toBe(true);
-  });
+  expect(fetchMock.called('*')).toBe(true);
 });
 
-it('sets error on failure', () => {
+it('sets error on failure', async () => {
   const error = { Error: 'BOOM!' };
   fetchMock.once('*', { status: 500, body: error });
 
@@ -40,25 +40,26 @@ it('sets error on failure', () => {
   mockHandler.mockReturnValue(<div />)
 
   const wrapper = mount(<Fetch url="http://localhost">{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
 
-  return wrapper.instance().promise.then(() => {
-    // Once for initial, once for loading, and once for response
-    expect(mockHandler.mock.calls.length).toBe(3);
+  await instance.promise;
 
-    // Initial state
-    expect(mockHandler.mock.calls[0][0]).toEqual({ loading: null });
+  // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(3);
 
-    // Loading...
-    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
 
-    // Error returned
-    expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, error, request: {}, response: {} });
+  // Loading...
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
 
-    expect(fetchMock.called('*')).toBe(true);
-  });
+  // Error returned
+  expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, error, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
 });
 
-it('returns cached result if set', () => {
+it('returns cached result if set', async () => {
   const fooData = { name: 'foo' };
   fetchMock.get('http://localhost/foo', fooData);
   const barData = { name: 'bar' };
@@ -69,16 +70,17 @@ it('returns cached result if set', () => {
 
   // First request
   const wrapper = mount(<Fetch url="http://localhost/foo" cache>{mockHandler}</Fetch>);
-  const promise1 = wrapper.instance().promise;
+  const instance = wrapper.instance();
+  const promise1 = instance.promise;
 
   // Second request
   wrapper.setProps({url: 'http://localhost/bar'});
-  const promise2 = wrapper.instance().promise;
+  const promise2 = instance.promise;
   expect(promise2).not.toBe(promise1);
 
   // Third, should be pulled from cache
   wrapper.setProps({url: 'http://localhost/foo'});
-  const promise3 = wrapper.instance().promise;
+  const promise3 = instance.promise;
 
   expect(promise3).toBe(promise1);
   expect(promise3).not.toBe(promise2);
@@ -86,12 +88,11 @@ it('returns cached result if set', () => {
   expect(fetchMock.calls('http://localhost/foo').length).toBe(1);
   expect(fetchMock.calls('http://localhost/bar').length).toBe(1);
 
-  return promise3.then((state) => {
-    expect(state.data).toEqual(fooData)
-  });
+  const state = await promise3;
+  expect(state.data).toEqual(fooData)
 });
 
-it('does not call setState if unmounted', () => {
+it('does not call setState if unmounted', async () => {
   const data = { hello: 'world' };
   fetchMock.once('*', data);
 
@@ -99,19 +100,24 @@ it('does not call setState if unmounted', () => {
   mockHandler.mockReturnValue(<div />)
 
   const wrapper = mount(<Fetch url="http://localhost">{mockHandler}</Fetch>);
-  const promise = wrapper.instance().promise;
+  const instance = wrapper.instance();
+  const promise = instance.promise;
   wrapper.unmount();
 
-  return promise.then(() => {
-    // Once for initial and once for loading, but should not be called when the response is returned 
-    expect(mockHandler.mock.calls.length).toBe(2);
+  await promise;
 
-    // Initial state
-    expect(mockHandler.mock.calls[0][0]).toEqual({ loading: null });
+  // Once for initial and once for loading, but should not be called when the response is returned 
+  expect(mockHandler.mock.calls.length).toBe(2);
 
-    // Loading...
-    expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
 
-    expect(fetchMock.called('*')).toBe(true);
+  // Loading...
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+
+
+
   });
 });
