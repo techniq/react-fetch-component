@@ -161,3 +161,100 @@ it('supports reloading data if "reload" called', async () => {
 
   expect(fetchMock.called('*')).toBe(true);
 });
+
+it('does not fetch if url is undefined', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch>{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+
+  expect(instance.promise).toBe(undefined);
+  
+  // // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(1);
+
+  // // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  expect(fetchMock.called('*')).toBe(false);
+});
+
+it('does not fetch if url is false', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch url={false}>{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+
+  expect(instance.promise).toBe(undefined);
+  
+  // // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(1);
+
+  // // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  expect(fetchMock.called('*')).toBe(false);
+});
+
+it('does not fetch if url is an empty string', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch url="">{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+
+  expect(instance.promise).toBe(undefined);
+  
+  // // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(1);
+
+  // // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  expect(fetchMock.called('*')).toBe(false);
+});
+
+it('supports delaying the initial fetch', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  // Mount component but should not issue request
+  const wrapper = mount(<Fetch>{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+  expect(instance.promise).toBe(undefined);
+
+  // Set url to issue request
+  wrapper.setProps({url: 'http://localhost'});
+  await instance.promise;
+
+  // Once for mount, once for the delayed setting of url, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(4);
+
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  // Setting the url but no fetch issued yet
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: null });
+
+  // Loading...
+  expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data loaded
+  expect(mockHandler.mock.calls[3][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});

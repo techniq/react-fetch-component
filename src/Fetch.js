@@ -9,7 +9,9 @@ class Fetch extends Component {
 
   componentDidMount() {
     this.mounted = true;
-    this.fetch();
+    if (this.props.url) {
+      this.fetch();
+    }
   }
 
   componentDidUpdate(prevProps) {

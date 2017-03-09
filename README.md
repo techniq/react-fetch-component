@@ -50,7 +50,7 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
   - Set to the [response](https://developer.mozilla.org/en-US/docs/Web/API/Response) of the `fetch` call
   - Useful to check the status code/text, headers, etc
 - `reload`
-  - Function that can be called to send a new fetch request (useful when last request had an error or you want to manually refresh the data)
+  - Function that can be called to create a new fetch request (useful when last request had an error or you want to manually refresh the data)
 
 ### Include credentials
 ```js
@@ -60,7 +60,7 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
 ```
 
 ## Props
-- `url` (string) - address of the request
+- `url` (string) - address of the request.  Initial fetch will only be created when it's a non-empty string.  You can initially set this to `undefined`, `false`, or an empty string to delay the fetch to a later render.
 - `options` (object) - request options such as `method`, `headers`, `credentials`, etc.
   - see [Request properties](https://developer.mozilla.org/en-US/docs/Web/API/Request#Properties) for all available options.
 - `as` - declare how to handle the response body
