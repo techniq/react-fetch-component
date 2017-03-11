@@ -49,6 +49,7 @@ class Fetch extends Component {
         .then(({ response, data }) => {
           const newState = {
             loading: false,
+            [response.ok ? 'error' : 'data']: undefined, // Clear last response
             [response.ok ? 'data' : 'error']: data,
             response
           }

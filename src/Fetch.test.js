@@ -59,6 +59,50 @@ it('sets error on failure', async () => {
   expect(fetchMock.called('*')).toBe(true);
 });
 
+it('clears error after successful response', async () => {
+  const error = { Error: 'BOOM!' };
+  fetchMock.once('*', { status: 500, body: error });
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  let savedProps = null;
+
+  const mockHandler = jest.fn(props => {
+    savedProps = props;
+    return <div></div>
+  });
+
+  const wrapper = mount(<Fetch url="http://localhost">{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+  const promise = instance.promise;
+
+  await promise;
+  savedProps.reload();
+  const promise2 = instance.promise;
+  await promise2;
+
+  // Once for initial and once for loading, but should not be called when the response is returned 
+  expect(mockHandler.mock.calls.length).toBe(5);
+
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  // Loading...
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Error returned
+  expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, error, request: {}, response: {} });
+
+  // Reloading...
+  expect(mockHandler.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data returned
+  expect(mockHandler.mock.calls[4][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+  expect(mockHandler.mock.calls[4][0].error).toBeUndefined();
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
 it('returns cached result if set', async () => {
   const fooData = { name: 'foo' };
   fetchMock.get('http://localhost/foo', fooData);
@@ -130,7 +174,6 @@ it('supports reloading data if "reload" called', async () => {
     savedProps = props;
     return <div></div>
   });
-  // mockHandler.mockReturnValue(<div />)
 
   const wrapper = mount(<Fetch url="http://localhost">{mockHandler}</Fetch>);
   const instance = wrapper.instance();
