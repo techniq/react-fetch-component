@@ -59,6 +59,33 @@ it('sets error on failure', async () => {
   expect(fetchMock.called('*')).toBe(true);
 });
 
+it('sets error if exception during request (ex. CORS issue)', async () => {
+  const error = new TypeError('Failed to fetch');
+  fetchMock.once('*', { status: 500, throws: error });
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch url="http://localhost">{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+
+  // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(3);
+
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  // Loading...
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // Error returned
+  expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, error, request: {}});
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
 it('clears error after successful response', async () => {
   const error = { Error: 'BOOM!' };
   fetchMock.once('*', { status: 500, body: error });

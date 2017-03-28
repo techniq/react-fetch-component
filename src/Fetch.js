@@ -49,14 +49,24 @@ class Fetch extends Component {
         .then(({ response, data }) => {
           const newState = {
             loading: false,
-            [response.ok ? 'error' : 'data']: undefined, // Clear last response
-            [response.ok ? 'data' : 'error']: data,
+            [response.ok ? 'error' : 'data' ]: undefined, // Clear last response
+            [response.ok ? 'data'  : 'error']: data,
             response
           }
 
           this.setStateIfMounted(newState);
           return newState;
-      })
+        })
+        .catch(error => {
+          // Catch request errors with no response (CORS issues, etc)
+          const newState = {
+            data: undefined,
+            error,
+            loading: false
+          }
+          this.setStateIfMounted(newState)
+          return newState
+        });
 
       if (cache) {
         this.cache[url] = this.promise;
