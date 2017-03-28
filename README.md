@@ -38,7 +38,7 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
 - `error`
   - Is `undefined` while request is pending
   - Will be set to the parsed response body (`json` by default) if `!response.ok` (i.e. status < 200 || status >= 300)
-  - Will be set to an `Error` instance if thrown while attemping to parse the response body, such as returning text/html when `json` was expected (default)
+  - Will be set to an `Error` instance if thrown during the request (ex. CORS issue) or if thrown while attemping to parse the response body, such as returning text/html when `json` was expected (which is the default parser)
   - Will remain `undefined` if neither of the previous occur
 - `data`
   - Is `undefined` while request is pending
