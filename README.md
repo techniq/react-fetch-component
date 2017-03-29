@@ -71,7 +71,7 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
     - `formData`
     - `json`
     - `text`
-- `cache` (boolean) - Cache responses by url and will return from cache when re-requested (set url from state and change away and the back)` url away and then back)
+- `cache` (boolean) - If true, will cache responses by `url` and return from cache without issuing another request.  Useful for typeahead features, etc.
   - default: `false`
 
 ## See also
