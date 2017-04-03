@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 class Fetch extends Component {
   state = {
-    reload: this.fetch.bind(this),
+    fetch: this.fetch.bind(this),
     loading: null 
   };
   cache = {};

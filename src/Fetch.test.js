@@ -104,7 +104,7 @@ it('clears error after successful response', async () => {
   const promise = instance.promise;
 
   await promise;
-  savedProps.reload();
+  savedProps.fetch();
   const promise2 = instance.promise;
   await promise2;
 
@@ -120,7 +120,7 @@ it('clears error after successful response', async () => {
   // Error returned
   expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, error, request: {}, response: {} });
 
-  // Reloading...
+  // Refetching...
   expect(mockHandler.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
 
   // Data returned
@@ -189,7 +189,7 @@ it('does not call setState if unmounted', async () => {
   expect(fetchMock.called('*')).toBe(true);
 });
 
-it('supports reloading data if "reload" called', async () => {
+it('supports refetching data if "fetch" called', async () => {
   const error = { Error: 'BOOM!' };
   fetchMock.once('*', { status: 500, body: error });
   const data = { hello: 'world' };
@@ -207,7 +207,7 @@ it('supports reloading data if "reload" called', async () => {
   const promise = instance.promise;
 
   await promise;
-  savedProps.reload();
+  savedProps.fetch();
   const promise2 = instance.promise;
   await promise2;
 
@@ -223,7 +223,7 @@ it('supports reloading data if "reload" called', async () => {
   // Error returned
   expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, error, request: {}, response: {} });
 
-  // Reloading...
+  // Refetching...
   expect(mockHandler.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
 
   // Data returned
