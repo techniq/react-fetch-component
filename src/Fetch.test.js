@@ -295,6 +295,85 @@ it('does not fetch if url is an empty string', async () => {
   expect(fetchMock.called('*')).toBe(false);
 });
 
+it('does not initially fetch if "manual" prop is true/set', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch url="http://localhost" manual>{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+
+  expect(instance.promise).toBe(undefined);
+  
+  // // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(1);
+
+  // // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  expect(fetchMock.called('*')).toBe(false);
+});
+
+it('does not fetch if "manual" prop is set and url changes', async () => {
+  const fooData = { name: 'foo' };
+  fetchMock.get('http://localhost/foo', fooData);
+  const barData = { name: 'bar' };
+  fetchMock.get('http://localhost/bar', barData);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  // Initial url
+  const wrapper = mount(<Fetch url="http://localhost/foo" manual>{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+  const promise1 = instance.promise;
+
+  // Change url
+  wrapper.setProps({url: 'http://localhost/bar'});
+  const promise2 = instance.promise;
+  expect(promise2).toBe(promise1);
+
+  expect(fetchMock.calls('http://localhost/foo').length).toBe(0);
+  expect(fetchMock.calls('http://localhost/bar').length).toBe(0);
+});
+
+it('supports manually fetching data if when "manual" set and "fetch" is called', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  let savedProps = null;
+
+  const mockHandler = jest.fn(props => {
+    savedProps = props;
+    return <div></div>
+  });
+
+  const wrapper = mount(<Fetch url="http://localhost" manual>{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+  const promise = instance.promise;
+
+  await promise; // no request made
+  savedProps.fetch();
+  const promise2 = instance.promise;
+  await promise2;
+
+  // Once for initial and once for loading, but should not be called when the response is returned 
+  expect(mockHandler.mock.calls.length).toBe(3);
+
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  // Loading...
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Data returned
+  expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
 it('supports delaying the initial fetch', async () => {
   const data = { hello: 'world' };
   fetchMock.once('*', data);
