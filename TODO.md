@@ -10,7 +10,13 @@
 - Do not allow multiple inflight fetch requests?
   - Add `debounce` / `throttle`
 - Setup UMD build
+- Provide lots of examples
+
 
 ## Document
-- Example wrapping <Fetch /> in own data component
-- More examples
+- Examples
+  - Wrapping <Fetch /> in own data component
+  - How to use wtih `react-select` / material-ui's `AutoComplete`
+  - POST/PATCH examples (passing `body`, setting headers (`Content-Type`, etc))
+    - `manual` with button to trigger
+  - http://visionmedia.github.io/superagent/
