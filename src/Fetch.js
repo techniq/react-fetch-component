@@ -8,14 +8,16 @@ class Fetch extends Component {
   cache = {};
 
   componentDidMount() {
+    const { url, manual, onChange } = this.props;
     this.mounted = true;
-    if (this.props.url && !this.props.manual) {
+    if (url && !manual) {
       this.fetch();
     }
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.url !== prevProps.url && !this.props.manual) {
+    const { url, manual } = this.props;
+    if (url !== prevProps.url && !manual) {
       this.fetch();
     }
   }
