@@ -10,12 +10,13 @@ class Fetch extends Component {
   componentDidMount() {
     const { url, manual, onChange } = this.props;
     this.mounted = true;
-    if (url && !manual) {
-      this.fetch();
-    }
 
     if (typeof onChange === 'function') {
       onChange(this.state);
+    }
+
+    if (url && !manual) {
+      this.fetch();
     }
   }
 
@@ -81,14 +82,15 @@ class Fetch extends Component {
   }
 
   setStateIfMounted(nextState, callback) {
+    // ALways call onChange even if unmounted.  Useful for `POST` requests with a redirect
+    const { onChange } = this.props;
+    if (typeof onChange === 'function') {
+      onChange({ ...this.state, ...nextState });
+    }
+
     // Ignore passing state down if no longer mounted
     if (this.mounted) {
-      this.setState(nextState, () => {
-        const { onChange } = this.props;
-        if (typeof onChange === 'function') {
-          onChange(this.state);
-        }
-      });
+      this.setState(nextState, callback);
     }
   }
 

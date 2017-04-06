@@ -76,7 +76,7 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
   - default: `false`
 - `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests
   - default: `false`
-- `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.
+- `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.  `onChange` will always be called even if `<Fetch />` component has been unmounted
   - default: `undefined`
 
 ## See also
