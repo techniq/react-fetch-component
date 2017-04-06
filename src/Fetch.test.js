@@ -460,3 +460,30 @@ it('supports children as single DOM element', async () => {
 
   expect(fetchMock.called('*')).toBe(true);
 });*/
+
+it('supports onChange prop', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockOnChange = jest.fn();
+
+  const wrapper = mount(<Fetch url="http://localhost" onChange={mockOnChange} />);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+
+  expect(mockOnChange.mock.calls.length).toBe(3);
+
+  // // Initial state
+  expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  // // Loading...
+  expect(mockOnChange.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // // Data loaded
+  expect(mockOnChange.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+// TODO: Create test to verify calling "setState" in "onChange" prop is supported

@@ -76,6 +76,8 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
   - default: `false`
 - `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests
   - default: `false`
+- `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.
+  - default: `undefined`
 
 ## See also
 - [react-odata](https://github.com/techniq/react-odata) - uses `<Fetch />` for OData endpoints
