@@ -407,3 +407,56 @@ it('supports delaying the initial fetch', async () => {
 
   expect(fetchMock.called('*')).toBe(true);
 });
+
+it('supports no children (fire and forget)', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch url="http://localhost" />);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+it('supports children as single DOM element', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const wrapper = mount(
+    <Fetch url="http://localhost">
+      <div />
+    </Fetch>
+  );
+  const instance = wrapper.instance();
+
+  await instance.promise;
+  // Once for initial, once for loading, and once for response
+  expect(wrapper.find('div').length).toBe(1);
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+// TODO: Not possible until React Fiber
+/*it('supports children as multiple DOM elements', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const wrapper = mount(
+    <Fetch url="http://localhost">
+      <div />
+      <div />
+    </Fetch>
+  );
+  const instance = wrapper.instance();
+
+  await instance.promise;
+  // Once for initial, once for loading, and once for response
+  expect(wrapper.find('div').length).toBe(2);
+
+  expect(fetchMock.called('*')).toBe(true);
+});*/
