@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 
 class Fetch extends Component {
+  static defaultProps = {
+    as: 'json'
+  }
+
   state = {
     fetch: this.fetch.bind(this),
     loading: null 
@@ -32,7 +36,7 @@ class Fetch extends Component {
   }
 
   fetch() {
-    let { url, options, as='json', cache } = this.props;
+    let { url, options, as, cache } = this.props;
 
     if (cache && this.cache[url]) {
       // Restore cached state
