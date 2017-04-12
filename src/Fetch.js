@@ -7,16 +7,21 @@ class Fetch extends Component {
 
   state = {
     fetch: this.fetch.bind(this),
-    loading: null 
+    loading: null,
   };
   cache = {};
+
+  getRequestProps() {
+    const { url, options } = this.props;
+    return { url, options };
+  }
 
   componentDidMount() {
     const { url, manual, onChange } = this.props;
     this.mounted = true;
 
     if (typeof onChange === 'function') {
-      onChange(this.state);
+      onChange({ request: this.getRequestProps(), ...this.state });
     }
 
     if (url && !manual) {
@@ -42,13 +47,11 @@ class Fetch extends Component {
       // Restore cached state
       this.promise = this.cache[url];
       this.promise.then(cachedState => this.setStateIfMounted({
-        request: { ...this.props },
         ...cachedState
       }));
     } else {
       this.setStateIfMounted({
         loading: true,
-        request: { ...this.props },
       });
 
       this.promise = fetch(url, options)
@@ -86,10 +89,10 @@ class Fetch extends Component {
   }
 
   setStateIfMounted(nextState, callback) {
-    // ALways call onChange even if unmounted.  Useful for `POST` requests with a redirect
+    // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
     const { onChange } = this.props;
     if (typeof onChange === 'function') {
-      onChange({ ...this.state, ...nextState });
+      onChange({ request: this.getRequestProps(), ...this.state, ...nextState });
     }
 
     // Ignore passing state down if no longer mounted
@@ -101,7 +104,7 @@ class Fetch extends Component {
   render() {
     const { children } = this.props;
     if (typeof(children) === 'function') {
-      return children(this.state);
+      return children({ request: this.getRequestProps(), ...this.state });
     } else if(React.Children.count(children) === 0) {
       return null
     } else {

@@ -21,7 +21,7 @@ it('sets data on success', async () => {
   expect(mockHandler.mock.calls.length).toBe(3);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Loading...
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
@@ -48,7 +48,7 @@ it('sets error on failure', async () => {
   expect(mockHandler.mock.calls.length).toBe(3);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Loading...
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
@@ -75,7 +75,7 @@ it('sets error if exception during request (ex. CORS issue)', async () => {
   expect(mockHandler.mock.calls.length).toBe(3);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Loading...
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
@@ -112,7 +112,7 @@ it('clears error after successful response', async () => {
   expect(mockHandler.mock.calls.length).toBe(5);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Loading...
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
@@ -181,7 +181,7 @@ it('does not call setState if unmounted', async () => {
   expect(mockHandler.mock.calls.length).toBe(2);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Loading...
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
@@ -215,7 +215,7 @@ it('supports refetching data if "fetch" called', async () => {
   expect(mockHandler.mock.calls.length).toBe(5);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Loading...
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
@@ -248,7 +248,7 @@ it('does not fetch if url is undefined', async () => {
   expect(mockHandler.mock.calls.length).toBe(1);
 
   // // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   expect(fetchMock.called('*')).toBe(false);
 });
@@ -269,7 +269,7 @@ it('does not fetch if url is false', async () => {
   expect(mockHandler.mock.calls.length).toBe(1);
 
   // // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   expect(fetchMock.called('*')).toBe(false);
 });
@@ -290,7 +290,7 @@ it('does not fetch if url is an empty string', async () => {
   expect(mockHandler.mock.calls.length).toBe(1);
 
   // // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   expect(fetchMock.called('*')).toBe(false);
 });
@@ -311,7 +311,7 @@ it('does not initially fetch if "manual" prop is true/set', async () => {
   expect(mockHandler.mock.calls.length).toBe(1);
 
   // // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   expect(fetchMock.called('*')).toBe(false);
 });
@@ -363,7 +363,7 @@ it('supports manually fetching data if when "manual" set and "fetch" is called',
   expect(mockHandler.mock.calls.length).toBe(3);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Loading...
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
@@ -394,7 +394,7 @@ it('supports delaying the initial fetch', async () => {
   expect(mockHandler.mock.calls.length).toBe(4);
 
   // Initial state
-  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
   // Setting the url but no fetch issued yet
   expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: null });
@@ -485,5 +485,8 @@ it('supports onChange prop', async () => {
 
   expect(fetchMock.called('*')).toBe(true);
 });
+// TODO: onChange called even if unmounted (useful for POST with redirect)
 
 // TODO: Create test to verify calling "setState" in "onChange" prop is supported
+// TODO: Test changing props updates `request` passed
+// TODO: Make sure all errors are not swallowed (just fetch-related like CORS issue)
