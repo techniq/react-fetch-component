@@ -11,7 +11,6 @@
 - Do not allow multiple inflight fetch requests?
   - Add `debounce` / `throttle`
 - Setup UMD build
-- Support passing `options` as function to be evaluated on demand (useful when calling expensive methods like `JSON.stringify` for `options.body` for example)
 
 ## Documentation
 - Examples

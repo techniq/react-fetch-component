@@ -62,7 +62,7 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
 
 ## Props
 - `url` (string) - address of the request.  Initial fetch will only be created when it's a non-empty string.  You can initially set this to `undefined`, `false`, or an empty string to delay the fetch to a later render.
-- `options` (object) - request options such as `method`, `headers`, `credentials`, etc.
+- `options` (object|function) - request options such as `method`, `headers`, `credentials`, etc.  If passed as a function, it will not be evaluated until the request is sent, which is useful when calling expensive methods like `JSON.stringify` for `options.body` for example.
   - see [Request properties](https://developer.mozilla.org/en-US/docs/Web/API/Request#Properties) for all available options.
 - `as` - declare how to handle the response body
   - default: `json`

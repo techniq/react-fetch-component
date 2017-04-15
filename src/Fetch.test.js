@@ -441,6 +441,40 @@ it('supports children as single DOM element', async () => {
   expect(fetchMock.called('*')).toBe(true);
 });
 
+it('supports options as function', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockHandler = jest.fn();
+  mockHandler.mockReturnValue(<div />)
+
+  const mockOptions = jest.fn();
+  const options = { headers: { 'Cache-Control': 'no-cache' } };
+  mockOptions.mockReturnValue(options);
+
+  const wrapper = mount(<Fetch url="http://localhost" options={mockOptions}>{mockHandler}</Fetch>);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+
+  // Once for initial, once for loading, and once for response
+  expect(mockHandler.mock.calls.length).toBe(3);
+
+  expect(mockOptions.mock.calls.length).toBe(1);
+  expect(fetchMock.calls('*')[0][1]).toMatchObject(options);
+
+  // Initial state
+  expect(mockHandler.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading...
+  expect(mockHandler.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data loaded
+  expect(mockHandler.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
 // TODO: Not possible until React Fiber
 /*it('supports children as multiple DOM elements', async () => {
   const data = { hello: 'world' };
@@ -460,6 +494,7 @@ it('supports children as single DOM element', async () => {
 
   expect(fetchMock.called('*')).toBe(true);
 });*/
+
 
 it('supports onChange prop', async () => {
   const data = { hello: 'world' };

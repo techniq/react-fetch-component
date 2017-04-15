@@ -13,7 +13,13 @@ class Fetch extends Component {
 
   getRequestProps() {
     const { url, options } = this.props;
+    // Do not evaluate options here or it removes the benefits of passing it as a function (lazy evaluation)
     return { url, options };
+  }
+
+  getOptions() {
+    const { options } = this.props;
+    return (typeof options === 'function') ? options() : options;
   }
 
   componentDidMount() {
@@ -54,7 +60,7 @@ class Fetch extends Component {
         loading: true,
       });
 
-      this.promise = fetch(url, options)
+      this.promise = fetch(url, this.getOptions())
         .then(response => {
           return response[as]()
             .then(data   => ({ response, data }))
