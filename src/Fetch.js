@@ -107,17 +107,27 @@ class Fetch extends Component {
     }
   }
 
-  render() {
-    const { children } = this.props;
+  renderChildren(children, fetchProps) {
     if (typeof(children) === 'function') {
-      return children({ request: this.getRequestProps(), ...this.state });
-    } else if(React.Children.count(children) === 0) {
+      const childrenResult = children(fetchProps);
+      if (typeof childrenResult === 'function') {
+        return this.renderChildren(childrenResult, fetchProps)
+      } else {
+        return childrenResult;
+      }
+    } else if (React.Children.count(children) === 0) {
       return null
     } else {
       // TODO: Better to check if children count === 1 and return null otherwise (like react-router)?
       //       Currently not possible to support multiple children components/elements (until React fiber)
       return React.Children.only(children)
     }
+  }
+
+  render() {
+    const { children } = this.props;
+    const fetchProps = { request: this.getRequestProps(), ...this.state };
+    return this.renderChildren(children, fetchProps);
   }
 }
 

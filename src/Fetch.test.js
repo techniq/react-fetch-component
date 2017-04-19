@@ -547,6 +547,113 @@ it('onChange is still called even if unmounted (useful for POST with redirect)',
   expect(fetchMock.called('*')).toBe(true);
 });
 
+it('supports interceptor / middlware', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  // const mockInterceptor = jest.fn();
+  // mockChildren.mockReturnValue(<div />)
+
+  const mockChildren = jest.fn();
+  mockChildren.mockReturnValue(<div />)
+
+  const middleware = fetchProps => mockChildren
+
+  const wrapper = mount(<Fetch url="http://localhost">{middleware}</Fetch>);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+  // Once for initial, once for loading, and once for response
+  expect(mockChildren.mock.calls.length).toBe(3);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading...
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data loaded
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+// TODO: Add test for conditional returning based on request.status (ex. 401 returns login, 200 returns `children`)
+
+it('supports multiple interceptors / middlwares', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockChildren = jest.fn();
+  mockChildren.mockReturnValue(<div />)
+
+  const middleware = fetchProps => fetchProps => mockChildren
+
+  const wrapper = mount(<Fetch url="http://localhost">{middleware}</Fetch>);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+  // Once for initial, once for loading, and once for response
+  expect(mockChildren.mock.calls.length).toBe(3);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading...
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data loaded
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+// TODO: Having difficulting testing/mocking this
+/*it('can use onChange with setState to control rendering instead of child function', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  let wrapper = null;
+
+  // TODO: This is being called before `wrapper` is set.
+  const mockOnChange = jest.fn(props => {
+    console.log('mockOnChange')
+    if (wrapper) {
+      console.log('mockOnChange, setting state', props)
+      wrapper.setState({ loading: props.loading })
+    }
+  });
+
+  const mockChildren = jest.fn();
+  mockChildren.mockReturnValue(<div />);
+
+  console.log('before mount')
+  wrapper = mount(
+    <Fetch url="http://localhost" onChange={mockOnChange}>
+      <div></div>
+    </Fetch>
+  );
+  console.log('after mount')
+  const instance = wrapper.instance();
+  const promise = instance.promise;
+
+  console.log('before promise resolves')
+  await promise;
+
+  expect(mockOnChange.mock.calls.length).toBe(3);
+  expect(mockChildren.mock.calls.length).toBe(3);
+
+  // // Initial state
+  expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  // // Loading...
+  expect(mockOnChange.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // // Data loaded
+  expect(mockOnChange.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});*/
+
 // TODO: onChange is called before render
 // TODO: Create test to verify calling "setState" in "onChange" prop is supported
 
