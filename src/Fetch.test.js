@@ -521,6 +521,32 @@ it('supports onChange prop', async () => {
   expect(fetchMock.called('*')).toBe(true);
 });
 
+it('onChange is still called even if unmounted (useful for POST with redirect)', async () => {
+  // TODO: Update docs to indicate the user is responsible for not calling `setState` if the component is unmounted
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockOnChange = jest.fn();
+
+  const wrapper = mount(<Fetch url="http://localhost" onChange={mockOnChange} />);
+  const instance = wrapper.instance();
+  const promise = instance.promise;
+  wrapper.unmount();
+
+  await promise;
+
+  // // Initial state
+  expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null });
+
+  // // Loading...
+  expect(mockOnChange.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // // Data loaded
+  expect(mockOnChange.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
 // TODO: onChange is called before render
 // TODO: Create test to verify calling "setState" in "onChange" prop is supported
 
