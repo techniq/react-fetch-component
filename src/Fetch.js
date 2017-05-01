@@ -85,6 +85,10 @@ class Fetch extends Component {
             loading: false
           }
           this.setStateIfMounted(newState)
+
+          // Rethrow so not to swallow errors, especially from errors within handlers (children func / onChange)
+          throw(error);
+
           return newState
         });
 

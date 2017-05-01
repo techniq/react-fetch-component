@@ -69,7 +69,15 @@ it('sets error if exception during request (ex. CORS issue)', async () => {
   const wrapper = mount(<Fetch url="http://localhost">{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  try {
+    await instance.promise;
+    fail('Promise should have rejected');
+  } catch (e) {
+    expect(e).not.toBeNull();
+  }
+  // TODO: Use the following once jest 0.20 is released:
+  // https://facebook.github.io/jest/docs/expect.html#rejects
+  // await expect(instance.promise).rejects.toEqual('Failed to fetch');
 
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
