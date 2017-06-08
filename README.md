@@ -12,13 +12,12 @@ npm install --save react-fetch-component
 ```
 
 ## Usage
+You supply a single function as a child of `<Fetch />` which receives a single argument as an object.  The function will be called anytime the state of the fetch request changes (for example, before a request has been made, while the request is in flight, and after the request returned a response).
 
-### Import
-```js
-import Fetch from 'react-fetch-component'
-```
+While you can pass a single property to the function (for example, `(fetchProps) => ...`), it is common to instead use object destructuring to peel off the properties on the object you plan to use.
 
-### Basic
+An example of destructing and using the most common properties `loading`, `error`, and `data`.
+
 ```js
 <Fetch url="someUrl">
   { ({ loading, error, data }) => (
@@ -29,9 +28,10 @@ import Fetch from 'react-fetch-component'
     </div>
   )}
 </Fetch>
-``` 
+```
 
-Function supplied as a child of `<Fetch />` will receive a single argument as an object with the following properties
+## Object properties passed to function
+
 - `loading`
   - Set to `true` while request is pending
   - Set to `false` once response has returned
@@ -52,14 +52,6 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
 - `fetch`
   - Function that can be called to create a new fetch request (useful when last request had an error or you want to manually refresh the data (see `manual` prop))
 
-
-### Include credentials
-```js
-<Fetch url="someUrl" options={{ credentials: 'include' }}>
-  {/* ... */}
-</Fetch>
-```
-
 ## Props
 - `url` (string) - address of the request.  Initial fetch will only be created when it's a non-empty string.  You can initially set this to `undefined`, `false`, or an empty string to delay the fetch to a later render.
 - `options` (object|function) - request options such as `method`, `headers`, `credentials`, etc.  If passed as a function, it will not be evaluated until the request is sent, which is useful when calling expensive methods like `JSON.stringify` for `options.body` for example.
@@ -78,6 +70,16 @@ Function supplied as a child of `<Fetch />` will receive a single argument as an
   - default: `false`
 - `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.  `onChange` will always be called even if `<Fetch />` component has been unmounted
   - default: `undefined`
+  
+## Examples
+### Include credentials
+```js
+<Fetch url="someUrl" options={{ credentials: 'include' }}>
+  {/* ... */}
+</Fetch>
+```
+
+More interactive examples on [CodeSandbox](https://codesandbox.io/s/Z6R7OrOgQ)
 
 ## See also
 - [react-odata](https://github.com/techniq/react-odata) - uses `<Fetch />` for OData endpoints
