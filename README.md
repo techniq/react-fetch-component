@@ -30,8 +30,26 @@ An example of destructing and using the most common properties `loading`, `error
 </Fetch>
 ```
 
-## Object properties passed to function
+## Props
+- `url` (string) - address of the request.  Initial fetch will only be created when it's a non-empty string.  You can initially set this to `undefined`, `false`, or an empty string to delay the fetch to a later render.
+- `options` (object|function) - request options such as `method`, `headers`, `credentials`, etc.  If passed as a function, it will not be evaluated until the request is sent, which is useful when calling expensive methods like `JSON.stringify` for `options.body` for example.
+  - see [Request properties](https://developer.mozilla.org/en-US/docs/Web/API/Request#Properties) for all available options.
+- `as` - declare how to handle the response body
+  - default: `json`
+  - can be set to any [body method](https://developer.mozilla.org/en-US/docs/Web/API/Body#Methods) including:
+    - `arrayBuffer`
+    - `blob`
+    - `formData`
+    - `json`
+    - `text`
+- `cache` (boolean) - If true, will cache responses by `url` and return from cache without issuing another request.  Useful for typeahead features, etc.
+  - default: `false`
+- `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests.
+  - default: `false`
+- `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.  `onChange` will always be called even if `<Fetch />` component has been unmounted.  If a result is returned, it will be used as `data` passed down to child function instead of the original data.
+  - default: `undefined`
 
+## Object properties passed to child function
 - `loading`
   - Set to `true` while request is pending
   - Set to `false` once response has returned
@@ -52,24 +70,7 @@ An example of destructing and using the most common properties `loading`, `error
 - `fetch`
   - Function that can be called to create a new fetch request (useful when last request had an error or you want to manually refresh the data (see `manual` prop))
 
-## Props
-- `url` (string) - address of the request.  Initial fetch will only be created when it's a non-empty string.  You can initially set this to `undefined`, `false`, or an empty string to delay the fetch to a later render.
-- `options` (object|function) - request options such as `method`, `headers`, `credentials`, etc.  If passed as a function, it will not be evaluated until the request is sent, which is useful when calling expensive methods like `JSON.stringify` for `options.body` for example.
-  - see [Request properties](https://developer.mozilla.org/en-US/docs/Web/API/Request#Properties) for all available options.
-- `as` - declare how to handle the response body
-  - default: `json`
-  - can be set to any [body method](https://developer.mozilla.org/en-US/docs/Web/API/Body#Methods) including:
-    - `arrayBuffer`
-    - `blob`
-    - `formData`
-    - `json`
-    - `text`
-- `cache` (boolean) - If true, will cache responses by `url` and return from cache without issuing another request.  Useful for typeahead features, etc.
-  - default: `false`
-- `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests.
-  - default: `false`
-- `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.  `onChange` will always be called even if `<Fetch />` component has been unmounted.  If a result is returned, it will be used as `data` passed down to child function instead of the original data.
-  - default: `undefined`
+
   
 ## Examples
 ### Include credentials
