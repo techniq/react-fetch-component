@@ -1,3 +1,4 @@
 {
-  "presets": ["react-app"]
+  "presets": ["env"],
+  "plugins": ["transform-react-jsx", "transform-object-rest-spread", "transform-class-properties"]
 }
