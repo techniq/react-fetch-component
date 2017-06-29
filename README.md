@@ -66,9 +66,9 @@ An example of destructing and using the most common properties `loading`, `error
     - `text`
 - `cache` (boolean) - If true, will cache responses by `url` and return from cache without issuing another request.  Useful for typeahead features, etc.
   - default: `false`
-- `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests
+- `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests.
   - default: `false`
-- `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.  `onChange` will always be called even if `<Fetch />` component has been unmounted
+- `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.  `onChange` will always be called even if `<Fetch />` component has been unmounted.  If a result is returned, it will be used as `data` passed down to child function instead of the original data.
   - default: `undefined`
   
 ## Examples

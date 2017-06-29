@@ -615,6 +615,63 @@ it('supports multiple interceptors / middlwares', async () => {
   expect(fetchMock.called('*')).toBe(true);
 });
 
+it('passes changes to children function as data if `onChange` returns a result', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockChildren = jest.fn();
+  mockChildren.mockReturnValue(<div />)
+
+  const changedData = { hello: 'everyone' };
+  const handleOnChange = ({ data }) => changedData;
+
+  const wrapper = mount(<Fetch url="http://localhost" onChange={handleOnChange}>{mockChildren}</Fetch>);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+  // Once for initial, once for loading, and once for response
+  expect(mockChildren.mock.calls.length).toBe(3);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading...
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data loaded
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: changedData, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+it('does not pass changes to children function as data if `onChange` does not return a result', async () => {
+  const data = { hello: 'world' };
+  fetchMock.once('*', data);
+
+  const mockChildren = jest.fn();
+  mockChildren.mockReturnValue(<div />)
+
+  const handleOnChange = ({ data }) => {};
+
+  const wrapper = mount(<Fetch url="http://localhost" onChange={handleOnChange}>{mockChildren}</Fetch>);
+  const instance = wrapper.instance();
+
+  await instance.promise;
+  // Once for initial, once for loading, and once for response
+  expect(mockChildren.mock.calls.length).toBe(3);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading...
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data loaded
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
 // TODO: Having difficulting testing/mocking this
 /*it('can use onChange with setState to control rendering instead of child function', async () => {
   const data = { hello: 'world' };
