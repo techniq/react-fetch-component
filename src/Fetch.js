@@ -10,6 +10,7 @@ class Fetch extends Component {
     loading: null,
   };
   cache = {};
+  promises = [];
 
   getRequestProps() {
     const { url, options } = this.props;
@@ -51,16 +52,15 @@ class Fetch extends Component {
 
     if (cache && this.cache[url]) {
       // Restore cached state
-      this.promise = this.cache[url];
-      this.promise.then(cachedState => this.setStateIfMounted({
-        ...cachedState
-      }));
+      const promise = this.cache[url];
+      promise.then(cachedState => this.update({ ...cachedState }, null, promise));
+      this.promises.push(promise);
     } else {
-      this.setStateIfMounted({
+      this.update({
         loading: true,
       });
 
-      this.promise = fetch(url, this.getOptions())
+      const promise = fetch(url, this.getOptions())
         .then(response => {
           return response[as]()
             .then(data   => ({ response, data }))
@@ -74,7 +74,8 @@ class Fetch extends Component {
             response
           }
 
-          this.setStateIfMounted(newState);
+          this.update(newState, null, promise);
+
           return newState;
         })
         .catch(error => {
@@ -84,7 +85,8 @@ class Fetch extends Component {
             error,
             loading: false
           }
-          this.setStateIfMounted(newState)
+
+          this.update(newState, null, promise);
 
           // Rethrow so not to swallow errors, especially from errors within handlers (children func / onChange)
           throw(error);
@@ -92,13 +94,27 @@ class Fetch extends Component {
           return newState
         });
 
+        this.promises.push(promise);
+
       if (cache) {
-        this.cache[url] = this.promise;
+        this.cache[url] = promise;
       }
     }
   }
 
-  setStateIfMounted(nextState, callback) {
+  update(nextState, callback, currentPromise) {
+    if (currentPromise) {
+      const index = this.promises.indexOf(currentPromise);
+      if (index === -1) {
+        // Ignore update as a later request/promise has already been processed
+        return;
+      }
+      
+      // Remove currently resolved promise and any outstanding promises
+      // (which will cause them to be ignored when they do return)
+      this.promises.splice(0, index + 1);
+    }
+
     // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
     const { onChange } = this.props;
     let onChangeResult = undefined;

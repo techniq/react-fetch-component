@@ -16,7 +16,8 @@ it('sets data on success', async () => {
   const wrapper = mount(<Fetch url="http://localhost">{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
+
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
 
@@ -42,7 +43,7 @@ it('sets error on failure', async () => {
   const wrapper = mount(<Fetch url="http://localhost">{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
 
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
@@ -70,7 +71,7 @@ it('sets error if exception during request (ex. CORS issue)', async () => {
   const instance = wrapper.instance();
 
   try {
-    await instance.promise;
+    await Promise.all(instance.promises);
     fail('Promise should have rejected');
   } catch (e) {
     expect(e).not.toBeNull();
@@ -109,12 +110,10 @@ it('clears error after successful response', async () => {
 
   const wrapper = mount(<Fetch url="http://localhost">{mockChildren}</Fetch>);
   const instance = wrapper.instance();
-  const promise = instance.promise;
 
-  await promise;
+  await Promise.all(instance.promises);
   savedProps.fetch();
-  const promise2 = instance.promise;
-  await promise2;
+  await Promise.all(instance.promises);
 
   // Once for initial and once for loading, but should not be called when the response is returned 
   expect(mockChildren.mock.calls.length).toBe(5);
@@ -150,16 +149,18 @@ it('returns cached result if set', async () => {
   // First request
   const wrapper = mount(<Fetch url="http://localhost/foo" cache>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
-  const promise1 = instance.promise;
+  const promise1 = instance.promises[0];
 
   // Second request
   wrapper.setProps({url: 'http://localhost/bar'});
-  const promise2 = instance.promise;
-  expect(promise2).not.toBe(promise1);
+  expect(instance.promises.length).toEqual(2);
+  const promise2 = instance.promises[1];
+  expect(promise1).not.toBe(promise2);
 
   // Third, should be pulled from cache
   wrapper.setProps({url: 'http://localhost/foo'});
-  const promise3 = instance.promise;
+  expect(instance.promises.length).toEqual(3);
+  const promise3 = instance.promises[2];
 
   expect(promise3).toBe(promise1);
   expect(promise3).not.toBe(promise2);
@@ -167,8 +168,37 @@ it('returns cached result if set', async () => {
   expect(fetchMock.calls('http://localhost/foo').length).toBe(1);
   expect(fetchMock.calls('http://localhost/bar').length).toBe(1);
 
-  const state = await promise3;
-  expect(state.data).toEqual(fooData)
+  await Promise.all(instance.promises);
+
+  // TODO: not sure why 8 rerendered, would expect 7 (initial + 3x loading + 3x data)
+  expect(mockChildren.mock.calls.length).toBe(8);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading first request
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Loading second request
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: true, request: {} });
+
+  // Loading third request
+  expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+
+  // TODO: Not sure 
+  expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: true, request: {} });
+
+  // First request data
+  expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: false, data:fooData, request: {}, response: {} });
+
+  // Second request data
+  expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:barData, request: {}, response: {} });
+  
+  // Third request data (from cache)
+  expect(mockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data:fooData, request: {}, response: {} });
+
+  // All promises have been processed
+  expect(instance.promises.length).toEqual(0)
 });
 
 it('does not call setState if unmounted', async () => {
@@ -180,10 +210,10 @@ it('does not call setState if unmounted', async () => {
 
   const wrapper = mount(<Fetch url="http://localhost">{mockChildren}</Fetch>);
   const instance = wrapper.instance();
-  const promise = instance.promise;
+  const promises = instance.promises;
   wrapper.unmount();
 
-  await promise;
+  await Promise.all(promises);
 
   // Once for initial and once for loading, but should not be called when the response is returned 
   expect(mockChildren.mock.calls.length).toBe(2);
@@ -212,12 +242,10 @@ it('supports refetching data if "fetch" called', async () => {
 
   const wrapper = mount(<Fetch url="http://localhost">{mockChildren}</Fetch>);
   const instance = wrapper.instance();
-  const promise = instance.promise;
 
-  await promise;
+  await Promise.all(instance.promises);
   savedProps.fetch();
-  const promise2 = instance.promise;
-  await promise2;
+  await Promise.all(instance.promises);
 
   // Once for initial and once for loading, but should not be called when the response is returned 
   expect(mockChildren.mock.calls.length).toBe(5);
@@ -250,7 +278,7 @@ it('does not fetch if url is undefined', async () => {
   const wrapper = mount(<Fetch>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  expect(instance.promise).toBe(undefined);
+  expect(instance.promises).toEqual([]);
   
   // // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(1);
@@ -271,7 +299,7 @@ it('does not fetch if url is false', async () => {
   const wrapper = mount(<Fetch url={false}>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  expect(instance.promise).toBe(undefined);
+  expect(instance.promises).toEqual([]);
   
   // // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(1);
@@ -313,7 +341,7 @@ it('does not initially fetch if "manual" prop is true/set', async () => {
   const wrapper = mount(<Fetch url="http://localhost" manual>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  expect(instance.promise).toBe(undefined);
+  expect(instance.promises).toEqual([]);
   
   // // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(1);
@@ -360,12 +388,10 @@ it('supports manually fetching data when "manual" prop set and "fetch" is called
 
   const wrapper = mount(<Fetch url="http://localhost" manual>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
-  const promise = instance.promise;
 
-  await promise; // no request made
+  await Promise.all(instance.promises); // no request made
   savedProps.fetch();
-  const promise2 = instance.promise;
-  await promise2;
+  await Promise.all(instance.promises);
 
   // Once for initial and once for loading, but should not be called when the response is returned 
   expect(mockChildren.mock.calls.length).toBe(3);
@@ -392,11 +418,11 @@ it('supports delaying the initial fetch', async () => {
   // Mount component but should not issue request
   const wrapper = mount(<Fetch>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
-  expect(instance.promise).toBe(undefined);
+  expect(instance.promises).toEqual([]);
 
   // Set url to issue request
   wrapper.setProps({url: 'http://localhost'});
-  await instance.promise;
+  await Promise.all(instance.promises);
 
   // Once for mount, once for the delayed setting of url, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(4);
@@ -426,7 +452,7 @@ it('supports no children (fire and forget)', async () => {
   const wrapper = mount(<Fetch url="http://localhost" />);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
 
   expect(fetchMock.called('*')).toBe(true);
 });
@@ -442,7 +468,7 @@ it('supports children as single DOM element', async () => {
   );
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
   // Once for initial, once for loading, and once for response
   expect(wrapper.find('div').length).toBe(1);
 
@@ -463,7 +489,7 @@ it('supports options as function', async () => {
   const wrapper = mount(<Fetch url="http://localhost" options={mockOptions}>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
 
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
@@ -496,7 +522,7 @@ it('supports options as function', async () => {
   );
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
   // Once for initial, once for loading, and once for response
   expect(wrapper.find('div').length).toBe(2);
 
@@ -513,7 +539,7 @@ it('supports onChange prop', async () => {
   const wrapper = mount(<Fetch url="http://localhost" onChange={mockOnChange} />);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
 
   expect(mockOnChange.mock.calls.length).toBe(3);
 
@@ -538,10 +564,10 @@ it('onChange is still called even if unmounted (useful for POST with redirect)',
 
   const wrapper = mount(<Fetch url="http://localhost" onChange={mockOnChange} />);
   const instance = wrapper.instance();
-  const promise = instance.promise;
+  const promises = instance.promises;
   wrapper.unmount();
 
-  await promise;
+  await Promise.all(promises);
 
   // // Initial state
   expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null });
@@ -570,7 +596,8 @@ it('supports interceptor / middlware', async () => {
   const wrapper = mount(<Fetch url="http://localhost">{middleware}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
+
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
 
@@ -599,7 +626,8 @@ it('supports multiple interceptors / middlwares', async () => {
   const wrapper = mount(<Fetch url="http://localhost">{middleware}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
+
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
 
@@ -628,7 +656,8 @@ it('passes changes to children function as data if `onChange` returns a result',
   const wrapper = mount(<Fetch url="http://localhost" onChange={handleOnChange}>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
+
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
 
@@ -656,7 +685,8 @@ it('does not pass changes to children function as data if `onChange` does not re
   const wrapper = mount(<Fetch url="http://localhost" onChange={handleOnChange}>{mockChildren}</Fetch>);
   const instance = wrapper.instance();
 
-  await instance.promise;
+  await Promise.all(instance.promises);
+
   // Once for initial, once for loading, and once for response
   expect(mockChildren.mock.calls.length).toBe(3);
 
@@ -668,6 +698,69 @@ it('does not pass changes to children function as data if `onChange` does not re
 
   // Data loaded
   expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+it('ignores/discards slow responses if later fetch is returned first (out of order)', async () => {
+  const responseData1 = { response: 1 };
+  const response1 = new Promise((resolve, reject) => setTimeout(() => resolve(responseData1), 300));
+  fetchMock.once('*', response1);
+
+  const responseData2 = { response: 2 };
+  const response2 = new Promise((resolve, reject) => setTimeout(() => resolve(responseData2), 100));
+  fetchMock.once('*', responseData2);
+
+  const responseData3 = { response: 3 };
+  const response3 = new Promise((resolve, reject) => setTimeout(() => resolve(responseData3), 100));
+  fetchMock.once('*', responseData3);
+
+  let savedProps = null;
+
+  const mockChildren = jest.fn(props => {
+    savedProps = props;
+    return <div></div>
+  });
+
+  const wrapper = mount(<Fetch url="http://localhost">{mockChildren}</Fetch>);
+  const instance = wrapper.instance();
+
+  // Fetch request #2
+  savedProps.fetch();
+
+  // Fetch request #3
+  savedProps.fetch();
+
+  // 2 promises are pending
+  expect(instance.promises.length).toEqual(3)
+
+  await Promise.all(instance.promises);
+
+  // Would have been 5 if request 1 was not ignored
+  expect(mockChildren.mock.calls.length).toBe(6);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading request 1
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Loading request 2 (before request 1 returns)
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: true, request: {} });
+
+  // Loading request 3 (before request 1 returns)
+  expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Request 2 returns first
+  expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data:responseData2, request: {}, response: {} });
+
+  // Request 3 returns first
+  expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: false, data:responseData3, request: {}, response: {} });
+
+  // Request 1's response was ignored
+  
+  // All promises have been processed / removed
+  expect(instance.promises.length).toEqual(0)
 
   expect(fetchMock.called('*')).toBe(true);
 });
@@ -699,10 +792,10 @@ it('does not pass changes to children function as data if `onChange` does not re
   );
   console.log('after mount')
   const instance = wrapper.instance();
-  const promise = instance.promise;
+  const promises = instance.promises;
 
   console.log('before promise resolves')
-  await promise;
+  await Promise.all(promises);
 
   expect(mockOnChange.mock.calls.length).toBe(3);
   expect(mockChildren.mock.calls.length).toBe(3);
