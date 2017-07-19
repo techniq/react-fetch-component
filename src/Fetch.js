@@ -56,9 +56,7 @@ class Fetch extends Component {
       promise.then(cachedState => this.update({ ...cachedState }, null, promise));
       this.promises.push(promise);
     } else {
-      this.update({
-        loading: true,
-      });
+      this.update({ loading: true });
 
       const promise = fetch(url, this.getOptions())
         .then(response => {
@@ -115,17 +113,22 @@ class Fetch extends Component {
       this.promises.splice(0, index + 1);
     }
 
-    // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
-    const { onChange } = this.props;
-    let onChangeResult = undefined;
+    const { onChange, onDataChange } = this.props;
+
+    let data = undefined;
+    if (nextState.data && nextState.data !== this.state.data && typeof onDataChange === 'function') {
+      data = onDataChange(nextState.data, this.state.data)
+    }
+
     if (typeof onChange === 'function') {
-      onChangeResult = onChange({ request: this.getRequestProps(), ...this.state, ...nextState });
+      // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
+      onChange({ request: this.getRequestProps(), ...this.state, ...nextState });
     }
 
     // Ignore passing state down if no longer mounted
     if (this.mounted) {
       // If `onChange` prop returned a value, we use it for data passed down to the children function
-      this.setState(onChangeResult === undefined ? nextState : { ...nextState, data: onChangeResult }, callback);
+      this.setState(data === undefined ? nextState : { ...nextState, data }, callback);
     }
   }
 
