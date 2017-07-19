@@ -702,7 +702,135 @@ it('does not pass changes to children function if `onDataChange` does not return
   expect(fetchMock.called('*')).toBe(true);
 });
 
-it('supports appending data using onDataChange and subsequent fetchs', async () => {
+it('supports modifying data using "onDataChange" and subsequent fetchs', async () => {
+  const responseData1 = { value: 1 };
+  fetchMock.once('*', responseData1);
+
+  const responseData2 = { value: 2 };
+  fetchMock.once('*', responseData2);
+
+  const responseData3 = { value: 3 };
+  fetchMock.once('*', responseData3);
+
+  let savedProps = null;
+
+  const mockChildren = jest.fn(props => {
+    savedProps = props;
+    return <div></div>
+  });
+
+  const handleOnDataChange = (data) => data.value
+
+  const wrapper = mount(<Fetch url="http://localhost" onDataChange={handleOnDataChange}>{mockChildren}</Fetch>);
+  const instance = wrapper.instance();
+  await Promise.all(instance.promises);
+
+  // Fetch request #2
+  savedProps.fetch();
+  await Promise.all(instance.promises);
+
+  // Fetch request #3
+  savedProps.fetch();
+  await Promise.all(instance.promises);
+
+  // All promises are resolved
+  expect(instance.promises.length).toEqual(0)
+
+  // Would have been 5 if request 1 was not ignored
+  expect(mockChildren.mock.calls.length).toBe(7);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading request 1
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Request 1 returned
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: responseData1.value, request: {}, response: {} });
+
+  // Loading request 2
+  expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Request 2 returned
+  expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data: responseData2.value, request: {}, response: {} });
+
+  // Loading request 3
+  expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: true, request: {} });
+
+  // Request 2 returned
+  expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data: responseData3.value, request: {}, response: {} });
+
+  // All promises have been processed / removed
+  expect(instance.promises.length).toEqual(0)
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+it('supports appending data using "onDataChange" and subsequent fetchs', async () => {
+  const responseData1 = { foo: 1 };
+  fetchMock.once('*', responseData1);
+
+  const responseData2 = { bar: 2 };
+  fetchMock.once('*', responseData2);
+
+  const responseData3 = { baz: 3 };
+  fetchMock.once('*', responseData3);
+
+  let savedProps = null;
+
+  const mockChildren = jest.fn(props => {
+    savedProps = props;
+    return <div></div>
+  });
+
+  const handleOnDataChange = (newData, currentData = []) => [...currentData, newData];
+
+  const wrapper = mount(<Fetch url="http://localhost" onDataChange={handleOnDataChange}>{mockChildren}</Fetch>);
+  const instance = wrapper.instance();
+  await Promise.all(instance.promises);
+
+  // Fetch request #2
+  savedProps.fetch();
+  await Promise.all(instance.promises);
+
+  // Fetch request #3
+  savedProps.fetch();
+  await Promise.all(instance.promises);
+
+  // All promises are resolved
+  expect(instance.promises.length).toEqual(0)
+
+  // Would have been 5 if request 1 was not ignored
+  expect(mockChildren.mock.calls.length).toBe(7);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading request 1
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Request 1 returned
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data:[responseData1], request: {}, response: {} });
+
+  // Loading request 2
+  expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+  
+  // Request 2 returned
+  expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data:[responseData1, responseData2], request: {}, response: {} });
+
+  // Loading request 3
+  expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: true, request: {} });
+
+  // Request 2 returned
+  expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:[responseData1, responseData2, responseData3], request: {}, response: {} });
+
+  // All promises have been processed / removed
+  expect(instance.promises.length).toEqual(0)
+
+  expect(fetchMock.called('*')).toBe(true);
+});
+
+it('supports concatenating data using "onDataChange" and subsequent fetchs', async () => {
   const responseData1 = [1,2,3];
   fetchMock.once('*', responseData1);
 
