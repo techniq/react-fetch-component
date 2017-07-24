@@ -8,7 +8,7 @@ afterEach(fetchMock.restore);
 
 describe('basic', () => {
   it('sets data on success', async () => {
-    const url = "http://localhost";
+    const url = 'http://localhost';
     const data = { hello: 'world' };
     fetchMock.once(url, data);
 
@@ -36,7 +36,7 @@ describe('basic', () => {
   });
 
   it('does not call setState if unmounted', async () => {
-    const url = "http://localhost";
+    const url = 'http://localhost';
     const data = { hello: 'world' };
     fetchMock.once(url, data);
 
@@ -63,7 +63,7 @@ describe('basic', () => {
   });
 
   it('supports options as function', async () => {
-    const url = "http://localhost";
+    const url = 'http://localhost';
     const data = { hello: 'world' };
     fetchMock.once(url, data);
 
@@ -100,7 +100,7 @@ describe('basic', () => {
 
 describe('fetching', () => {
   it('supports refetching data if "fetch" called', async () => {
-    const url = "http://localhost";
+    const url = 'http://localhost';
     const error = { Error: 'BOOM!' };
     fetchMock.once(url, { status: 500, body: error });
     const data = { hello: 'world' };
@@ -211,7 +211,7 @@ describe('fetching', () => {
     const mockChildren = jest.fn();
     mockChildren.mockReturnValue(<div />)
 
-    const wrapper = mount(<Fetch url="http://localhost" manual>{mockChildren}</Fetch>);
+    const wrapper = mount(<Fetch url='http://localhost' manual>{mockChildren}</Fetch>);
     const instance = wrapper.instance();
 
     expect(instance.promises).toEqual([]);
@@ -1019,7 +1019,7 @@ describe('middleware', () => {
 
   console.log('before mount')
   wrapper = mount(
-    <Fetch url="http://localhost" onChange={mockOnChange}>
+    <Fetch url='http://localhost' onChange={mockOnChange}>
       <div></div>
     </Fetch>
   );
