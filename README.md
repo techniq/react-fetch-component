@@ -1,4 +1,4 @@
-# react-fetch-component
+# react-fetch-component [![CircleCI](https://circleci.com/gh/techniq/react-fetch-component.svg?style=svg)](https://circleci.com/gh/techniq/react-fetch-component)
 
 React component to declaratively [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) data
 
