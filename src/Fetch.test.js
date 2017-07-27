@@ -141,7 +141,7 @@ describe('fetching', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 
-  it('does not fetch if url is undefined', async () => {
+  it('does not fetch if url prop is undefined', async () => {
     const data = { hello: 'world' };
     fetchMock.once('*', data);
 
@@ -162,7 +162,7 @@ describe('fetching', () => {
     expect(fetchMock.called('*')).toBe(false);
   });
 
-  it('does not fetch if url is false', async () => {
+  it('does not fetch if url prop is false', async () => {
     const data = { hello: 'world' };
     fetchMock.once('*', data);
 
@@ -183,7 +183,7 @@ describe('fetching', () => {
     expect(fetchMock.called('*')).toBe(false);
   });
 
-  it('does not fetch if url is an empty string', async () => {
+  it('does not fetch if url prop is an empty string', async () => {
     const data = { hello: 'world' };
     fetchMock.once('*', data);
 
@@ -284,7 +284,7 @@ describe('fetching', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 
-  it('supports delaying the initial fetch', async () => {
+  it('supports delaying the initial fetch by changing url prop', async () => {
     const url = 'http://localhost';
     const data = { hello: 'world' };
     fetchMock.once(url, data);
@@ -317,6 +317,94 @@ describe('fetching', () => {
     expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
 
     expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('supports passing options to "fetch" function but keep original url (undefined / null)', async () => {
+    const url = 'http://localhost';
+
+    const data1 = { foo: 1 };
+    fetchMock.getOnce(url, data1);
+    
+    const data2 = { bar: 2 };
+    fetchMock.postOnce(url, data2);
+
+    let savedProps = null;
+
+    const mockChildren = jest.fn(props => {
+      savedProps = props;
+      return <div></div>
+    });
+
+    const wrapper = mount(<Fetch url={url}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+    savedProps.fetch(null, { method: 'post' });
+    await Promise.all(instance.promises);
+
+    // 1x initial, 2x loading, 2x data
+    expect(mockChildren.mock.calls.length).toBe(5);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+    
+    // Data returned
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: data1, request: {}, response: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    
+    // Data returned
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data: data2, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('supports passing url to "fetch" function', async () => {
+    const url1 = 'http://localhost/1';
+    const data1 = { foo: 1 };
+    fetchMock.once(url1, data1);
+    
+    const url2 = 'http://localhost/2';
+    const data2 = { bar: 2 };
+    fetchMock.once(url2, data2);
+
+    let savedProps = null;
+
+    const mockChildren = jest.fn(props => {
+      savedProps = props;
+      return <div></div>
+    });
+
+    const wrapper = mount(<Fetch url={url1}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+    savedProps.fetch(url2);
+    await Promise.all(instance.promises);
+
+    // 1x initial, 2x loading, 2x data
+    expect(mockChildren.mock.calls.length).toBe(5);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+    
+    // Data returned
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: data1, request: {}, response: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    
+    // Data returned
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data: data2, request: {}, response: {} });
+
+    expect(fetchMock.called(url1)).toBe(true);
   });
 
   it('ignores/discards slow responses if later fetch is returned first (out of order)', async () => {

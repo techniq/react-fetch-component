@@ -18,13 +18,12 @@ class Fetch extends Component {
     return { url, options };
   }
 
-  getOptions() {
-    const { options } = this.props;
+  getOptions(options) {
     return (typeof options === 'function') ? options() : options;
   }
 
   componentDidMount() {
-    const { url, manual, onChange } = this.props;
+    const { url, options, manual, onChange } = this.props;
     this.mounted = true;
 
     if (typeof onChange === 'function') {
@@ -32,14 +31,14 @@ class Fetch extends Component {
     }
 
     if (url && !manual) {
-      this.fetch();
+      this.fetch(url, options);
     }
   }
 
   componentDidUpdate(prevProps) {
-    const { url, manual } = this.props;
+    const { url, options, manual } = this.props;
     if (url !== prevProps.url && !manual) {
-      this.fetch();
+      this.fetch(url, options);
     }
   }
 
@@ -47,8 +46,16 @@ class Fetch extends Component {
     this.mounted = false;
   }
 
-  fetch() {
-    let { url, options, as, cache } = this.props;
+  fetch(url, options) {
+    let { as, cache } = this.props;
+
+    if (url == null) {
+      url = this.props.url;
+    }
+
+    if (options == null) {
+      options = this.props.options;
+    }
 
     if (cache && this.cache[url]) {
       // Restore cached state
@@ -58,7 +65,7 @@ class Fetch extends Component {
     } else {
       this.update({ loading: true });
 
-      const promise = fetch(url, this.getOptions())
+      const promise = fetch(url, this.getOptions(options))
         .then(response => {
           return response[as]()
             .then(data   => ({ response, data }))
