@@ -27,6 +27,7 @@
       - `this.setState()` within render (children function) will raise:
         - "Warning: setState(...): Cannot update during an existing state transition (such as within `render` or another component's constructor side-effects are an anti-pattern, but can be moved to `componentWillMount`)"
     - Pagination
+      - concating new results to previous using `onDataChange`
     - Loading more (at bottom)
     - Interceptors / Middleware
       - Request (setting Authorization header, other default headers, etc)
