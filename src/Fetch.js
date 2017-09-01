@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-class Fetch extends Component {
+export default class Fetch extends Component {
   static defaultProps = {
     as: 'json'
   }
@@ -53,9 +53,7 @@ class Fetch extends Component {
       url = this.props.url;
     }
 
-    if (options == null) {
-      options = this.props.options;
-    }
+    options = this.getOptions(options || this.props.options)
 
     if (cache && this.cache[url]) {
       // Restore cached state
@@ -65,7 +63,7 @@ class Fetch extends Component {
     } else {
       this.update({ loading: true });
 
-      const promise = fetch(url, this.getOptions(options))
+      const promise = fetch(url, options)
         .then(response => {
           return response[as]()
             .then(data   => ({ response, data }))
@@ -116,7 +114,7 @@ class Fetch extends Component {
       }
       
       // Remove currently resolved promise and any outstanding promises
-      // (which will cause them to be ignored when they do return)
+      // (which will cause them to be ignored when they do resolve/reject)
       this.promises.splice(0, index + 1);
     }
 
@@ -139,28 +137,27 @@ class Fetch extends Component {
     }
   }
 
-  renderChildren(children, fetchProps) {
-    if (typeof(children) === 'function') {
-      const childrenResult = children(fetchProps);
-      if (typeof childrenResult === 'function') {
-        return this.renderChildren(childrenResult, fetchProps)
-      } else {
-        return childrenResult;
-      }
-    } else if (React.Children.count(children) === 0) {
-      return null
-    } else {
-      // TODO: Better to check if children count === 1 and return null otherwise (like react-router)?
-      //       Currently not possible to support multiple children components/elements (until React fiber)
-      return React.Children.only(children)
-    }
-  }
-
   render() {
     const { children } = this.props;
     const fetchProps = { request: this.getRequestProps(), ...this.state };
-    return this.renderChildren(children, fetchProps);
+    return renderChildren(children, fetchProps);
   }
 }
 
-export default Fetch;
+export function renderChildren(children, fetchProps) {
+  if (typeof(children) === 'function') {
+    const childrenResult = children(fetchProps);
+    if (typeof childrenResult === 'function') {
+      return renderChildren(childrenResult, fetchProps)
+    } else {
+      return childrenResult;
+    }
+  } else if (React.Children.count(children) === 0) {
+    return null
+  } else {
+    // DOM/Component children
+    // TODO: Better to check if children count === 1 and return null otherwise (like react-router)?
+    //       Currently not possible to support multiple children components/elements (until React fiber)
+    return React.Children.only(children)
+  }
+}
