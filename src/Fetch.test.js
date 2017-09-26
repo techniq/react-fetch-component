@@ -1011,7 +1011,7 @@ describe('onDataChange', () => {
     // Loading request 3
     expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: true, request: {} });
 
-    // Request 2 returned
+    // Request 3 returned
     expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:[...responseData1, ...responseData2, ...responseData3], request: {}, response: {} });
 
     // All promises have been processed / removed
@@ -1019,6 +1019,137 @@ describe('onDataChange', () => {
 
     expect(fetchMock.called(url)).toBe(true);
   });
+
+  it('supports clearing data', async () => {
+    const url = 'http://localhost';
+    const responseData1 = [1,2,3];
+    fetchMock.once(url, responseData1);
+
+    const responseData2 = [4,5,6];
+    fetchMock.once(url, responseData2);
+
+    const responseData3 = [7,8,9];
+    fetchMock.once(url, responseData3);
+
+    const responseData4 = [10,11,12];
+    fetchMock.once(url, responseData4);
+
+    const responseData5 = [13,14,15];
+    fetchMock.once(url, responseData5);
+
+    let savedProps = null;
+
+    const mockChildren = jest.fn(props => {
+      savedProps = props;
+      return <div></div>
+    });
+
+    const handleOnDataChange = (newData, currentData = []) => [...currentData, ...newData];
+
+    const wrapper = mount(<Fetch url={url} onDataChange={handleOnDataChange}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+    await Promise.all(instance.promises);
+
+    // Fetch request #2
+    savedProps.fetch();
+    await Promise.all(instance.promises);
+
+    // Fetch request #3
+    savedProps.fetch();
+    await Promise.all(instance.promises);
+
+    savedProps.clearData();
+
+    // Fetch request #4
+    savedProps.fetch();
+    await Promise.all(instance.promises);
+
+    // Fetch request #5
+    savedProps.fetch();
+    await Promise.all(instance.promises);
+
+    // All promises are resolved
+    expect(instance.promises.length).toEqual(0)
+
+    expect(mockChildren.mock.calls.length).toBe(12);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading request 1
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+    
+    // Request 1 returned
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data:responseData1, request: {}, response: {} });
+
+    // Loading request 2
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    
+    // Request 2 returned
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data:[...responseData1, ...responseData2], request: {}, response: {} });
+
+    // Loading request 3
+    expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: true, request: {} });
+
+    // Request 3 returned
+    expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:[...responseData1, ...responseData2, ...responseData3], request: {}, response: {} });
+
+    // Data cleared
+    expect(mockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data:[], request: {}, response: {} });
+
+    // Loading request 4
+    expect(mockChildren.mock.calls[8][0]).toMatchObject({ loading: true, request: {} });
+
+    // Request 4 returned
+    expect(mockChildren.mock.calls[9][0]).toMatchObject({ loading: false, data:[...responseData4], request: {}, response: {} });
+
+    // Loading request 5
+    expect(mockChildren.mock.calls[10][0]).toMatchObject({ loading: true, request: {} });
+
+    // Request 5 returned
+    expect(mockChildren.mock.calls[11][0]).toMatchObject({ loading: false, data:[...responseData4, ...responseData5], request: {}, response: {} });
+
+    // All promises have been processed / removed
+    expect(instance.promises.length).toEqual(0)
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+});
+
+describe('middleware', () => {
+  it('supports interceptor / middlware', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    // const mockInterceptor = jest.fn();
+    // mockChildren.mockReturnValue(<div />)
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const middleware = fetchProps => mockChildren
+
+    const wrapper = mount(<Fetch url={url}>{middleware}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
 });
 
 describe('middleware', () => {

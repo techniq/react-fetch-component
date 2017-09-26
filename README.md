@@ -70,7 +70,8 @@ An example of destructing and using the most common properties `loading`, `error
   - Useful to check the status code/text, headers, etc
 - `fetch`
   - Function that can be called to create a new fetch request (useful when last request had an error or you want to manually refresh the data (see `manual` prop))
-
+- `clearData`
+  - Function to clear data state.  Useful when using `onDataChange` to concatenate data across requests (ie. infinite loading) and the query changes
 
   
 ## Examples

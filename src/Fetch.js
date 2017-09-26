@@ -7,6 +7,7 @@ export default class Fetch extends Component {
 
   state = {
     fetch: this.fetch.bind(this),
+    clearData: this.clearData.bind(this),
     loading: null,
   };
   cache = {};
@@ -103,6 +104,10 @@ export default class Fetch extends Component {
         this.cache[url] = promise;
       }
     }
+  }
+
+  clearData() {
+    this.setState({ data: [] })
   }
 
   update(nextState, callback, currentPromise) {
