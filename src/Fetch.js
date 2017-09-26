@@ -6,18 +6,16 @@ export default class Fetch extends Component {
   }
 
   state = {
+    request: {
+      url: this.props.url,
+      options: this.props.options
+    },
     fetch: this.fetch.bind(this),
     clearData: this.clearData.bind(this),
     loading: null,
   };
   cache = {};
   promises = [];
-
-  getRequestProps() {
-    const { url, options } = this.props;
-    // Do not evaluate options here or it removes the benefits of passing it as a function (lazy evaluation)
-    return { url, options };
-  }
 
   getOptions(options) {
     return (typeof options === 'function') ? options() : options;
@@ -28,7 +26,7 @@ export default class Fetch extends Component {
     this.mounted = true;
 
     if (typeof onChange === 'function') {
-      onChange({ request: this.getRequestProps(), ...this.state });
+      onChange(this.state);
     }
 
     if (url && !manual) {
@@ -55,14 +53,15 @@ export default class Fetch extends Component {
     }
 
     options = this.getOptions(options || this.props.options)
+    const request = { url, options }
 
     if (cache && this.cache[url]) {
       // Restore cached state
       const promise = this.cache[url];
-      promise.then(cachedState => this.update({ ...cachedState }, null, promise));
+      promise.then(cachedState => this.update(cachedState, null, promise));
       this.promises.push(promise);
     } else {
-      this.update({ loading: true });
+      this.update({ request, loading: true });
 
       const promise = fetch(url, options)
         .then(response => {
@@ -72,6 +71,7 @@ export default class Fetch extends Component {
         })
         .then(({ response, data }) => {
           const newState = {
+            request,
             loading: false,
             [response.ok ? 'error' : 'data' ]: undefined, // Clear last response
             [response.ok ? 'data'  : 'error']: data,
@@ -85,6 +85,7 @@ export default class Fetch extends Component {
         .catch(error => {
           // Catch request errors with no response (CORS issues, etc)
           const newState = {
+            request,
             data: undefined,
             error,
             loading: false
@@ -132,20 +133,19 @@ export default class Fetch extends Component {
 
     if (typeof onChange === 'function') {
       // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
-      onChange({ request: this.getRequestProps(), ...this.state, ...nextState });
+      onChange({ ...this.state, ...nextState });
     }
 
     // Ignore passing state down if no longer mounted
     if (this.mounted) {
-      // If `onChange` prop returned a value, we use it for data passed down to the children function
+      // If `onDataChange` prop returned a value, we use it for data passed down to the children function
       this.setState(data === undefined ? nextState : { ...nextState, data }, callback);
     }
   }
 
   render() {
     const { children } = this.props;
-    const fetchProps = { request: this.getRequestProps(), ...this.state };
-    return renderChildren(children, fetchProps);
+    return renderChildren(children, this.state);
   }
 }
 

@@ -390,21 +390,22 @@ describe('fetching', () => {
     expect(mockChildren.mock.calls.length).toBe(5);
 
     // Initial state
-    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: { url: url1 } });
 
     // Loading...
-    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: { url: url1 } });
     
     // Data returned
-    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: data1, request: {}, response: {} });
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: data1, request: { url: url1 }, response: {} });
 
     // Loading...
-    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: { url: url2 } });
     
     // Data returned
-    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data: data2, request: {}, response: {} });
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data: data2, request: { url: url2 }, response: {} });
 
     expect(fetchMock.called(url1)).toBe(true);
+    expect(fetchMock.called(url2)).toBe(true);
   });
 
   it('ignores/discards slow responses if later fetch is returned first (out of order)', async () => {
@@ -624,25 +625,25 @@ describe('cache', () => {
     expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
 
     // Loading first request
-    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: { url: url1 } });
     
     // Loading second request
-    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: true, request: {} });
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: true, request: { url: url1 } });
 
     // Loading third request
-    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: { url: url2 } });
 
     // TODO: Not sure 
-    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: true, request: {} });
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: true, request: { url: url2 } });
 
     // First request data
-    expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: false, data:data1, request: {}, response: {} });
+    expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: false, data:data1, request: { url: url1 }, response: {} });
 
     // Second request data
-    expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:data2, request: {}, response: {} });
+    expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:data2, request: { url: url2 }, response: {} });
     
     // Third request data (from cache)
-    expect(mockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data:data1, request: {}, response: {} });
+    expect(mockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data:data1, request: { url: url1 }, response: {} });
 
     // All promises have been processed
     expect(instance.promises.length).toEqual(0)
