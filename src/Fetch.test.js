@@ -1096,7 +1096,7 @@ describe('onDataChange', () => {
     expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:[...responseData1, ...responseData2, ...responseData3], request: {}, response: {} });
 
     // Data cleared
-    expect(mockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data:[], request: {}, response: {} });
+    expect(mockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data: undefined, request: {}, response: {} });
 
     // Loading request 4
     expect(mockChildren.mock.calls[8][0]).toMatchObject({ loading: true, request: {} });

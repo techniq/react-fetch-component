@@ -108,7 +108,7 @@ export default class Fetch extends Component {
   }
 
   clearData() {
-    this.setState({ data: [] })
+    this.setState({ data: undefined })
   }
 
   update(nextState, callback, currentPromise) {
