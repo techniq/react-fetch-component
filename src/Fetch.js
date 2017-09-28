@@ -133,13 +133,13 @@ export default class Fetch extends Component {
 
     if (typeof onChange === 'function') {
       // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
-      onChange({ ...this.state, ...nextState });
+      onChange({ ...this.state, ...nextState, ...data && { data } });
     }
 
     // Ignore passing state down if no longer mounted
     if (this.mounted) {
       // If `onDataChange` prop returned a value, we use it for data passed down to the children function
-      this.setState(data === undefined ? nextState : { ...nextState, data }, callback);
+      this.setState({ ...nextState, ...data && { data } }, callback);
     }
   }
 

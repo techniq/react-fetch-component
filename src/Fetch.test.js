@@ -765,7 +765,7 @@ describe('onChange', () => {
 });
 
 describe('onDataChange', () => {
-  it('passes updated data to children function `onDataChange` is set and does not return undefined', async () => {
+  it('passes updated data to children function if `onDataChange` is set and does not return undefined', async () => {
     const url = 'http://localhost';
     const data = { hello: 'world' };
     fetchMock.once(url, data);
@@ -792,6 +792,39 @@ describe('onDataChange', () => {
 
     // Data loaded
     expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: changedData, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('passes updated data to `onChange` function if `onDataChange` is set and does not return undefined', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const changedData = { hello: 'everyone' };
+    const handleOnDataChange = (data) => changedData;
+
+    const mockOnChange = jest.fn();
+
+    const wrapper = mount(<Fetch url={url} onDataChange={handleOnDataChange} onChange={mockOnChange}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockOnChange.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockOnChange.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockOnChange.mock.calls[2][0]).toMatchObject({ loading: false, data: changedData, request: {}, response: {} });
 
     expect(fetchMock.called(url)).toBe(true);
   });
