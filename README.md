@@ -70,8 +70,9 @@ An example of destructing and using the most common properties `loading`, `error
   - Useful to check the status code/text, headers, etc
 - `fetch`
   - Function that can be called to create a new fetch request (useful when last request had an error or you want to manually refresh the data (see `manual` prop))
+  - The first 2 parameters match `window.fetch` (`url`, `options`).  A third parameter (`updateOptions`) is available to pass options to the update phase (where `onChange`, `onDataChange`, and the child render function is called).  Currently only 1 option is available (`ignorePreviousData`) which passes `undefined` as the current data (second parameter) to `onDataChange`, which is useful when using `onDataChange` to concatenate data across requests (ie. infinite loading) and the query changes
 - `clearData`
-  - Function to clear data state.  Useful when using `onDataChange` to concatenate data across requests (ie. infinite loading) and the query changes
+  - Function to clear data state.
 
   
 ## Examples

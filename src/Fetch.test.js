@@ -1054,6 +1054,71 @@ describe('onDataChange', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 
+  it('supports clearing data before "onDataChange" is called', async () => {
+    const url = 'http://localhost';
+    const responseData1 = [1,2,3];
+    fetchMock.once(url, responseData1);
+
+    const responseData2 = [4,5,6];
+    fetchMock.once(url, responseData2);
+
+    const responseData3 = [7,8,9];
+    fetchMock.once(url, responseData3);
+
+    let savedProps = null;
+
+    const mockChildren = jest.fn(props => {
+      savedProps = props;
+      return <div></div>
+    });
+
+    const handleOnDataChange = (newData, currentData = []) => [...currentData, ...newData];
+
+    const wrapper = mount(<Fetch url={url} onDataChange={handleOnDataChange}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    // Fetch request #2
+    savedProps.fetch();
+
+    // Fetch request #3
+    savedProps.fetch(url, null, { ignorePreviousData: true });
+
+    // Wait for all requests to return before asserting
+    await Promise.all(instance.promises);
+
+    // All promises are resolved
+    expect(instance.promises.length).toEqual(0)
+
+    // Would have been 5 if request 1 was not ignored
+    expect(mockChildren.mock.calls.length).toBe(7);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading request 1
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Loading request 2
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: true, request: {} });
+
+    // Loading request 3
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    
+    // Request 1 returned
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({ loading: false, data:responseData1, request: {}, response: {} });
+    
+    // Request 2 returned
+    expect(mockChildren.mock.calls[5][0]).toMatchObject({ loading: false, data:[...responseData1, ...responseData2], request: {}, response: {} });
+
+    // Request 3 returned
+    expect(mockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data:responseData3, request: {}, response: {} });
+
+    // All promises have been processed / removed
+    expect(instance.promises.length).toEqual(0)
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
   it('supports clearing data', async () => {
     const url = 'http://localhost';
     const responseData1 = [1,2,3];

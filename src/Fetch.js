@@ -45,7 +45,7 @@ export default class Fetch extends Component {
     this.mounted = false;
   }
 
-  fetch(url, options) {
+  fetch(url, options, updateOptions) {
     let { as, cache } = this.props;
 
     if (url == null) {
@@ -58,10 +58,10 @@ export default class Fetch extends Component {
     if (cache && this.cache[url]) {
       // Restore cached state
       const promise = this.cache[url];
-      promise.then(cachedState => this.update(cachedState, promise));
+      promise.then(cachedState => this.update(cachedState, promise, updateOptions));
       this.promises.push(promise);
     } else {
-      this.update({ request, loading: true });
+      this.update({ request, loading: true }, null, updateOptions);
 
       const promise = fetch(url, options)
         .then(response => {
@@ -78,7 +78,7 @@ export default class Fetch extends Component {
             response
           }
 
-          this.update(newState, promise);
+          this.update(newState, promise, updateOptions);
 
           return newState;
         })
@@ -91,7 +91,7 @@ export default class Fetch extends Component {
             loading: false
           }
 
-          this.update(newState, promise);
+          this.update(newState, promise, updateOptions);
 
           // Rethrow so not to swallow errors, especially from errors within handlers (children func / onChange)
           throw(error);
@@ -113,7 +113,7 @@ export default class Fetch extends Component {
     this.setState({ data: undefined })
   }
 
-  update(nextState, currentPromise) {
+  update(nextState, currentPromise, options = {}) {
     if (currentPromise) {
       // Handle (i.e. ignore) promises resolved out of order from requests
       const index = this.promises.indexOf(currentPromise);
@@ -131,7 +131,7 @@ export default class Fetch extends Component {
 
     let data = undefined;
     if (nextState.data && nextState.data !== this.state.data && typeof onDataChange === 'function') {
-      data = onDataChange(nextState.data, this.state.data)
+      data = onDataChange(nextState.data, options.ignorePreviousData ? undefined : this.state.data)
     }
 
     if (typeof onChange === 'function') {
