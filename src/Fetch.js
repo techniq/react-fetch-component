@@ -115,6 +115,7 @@ export default class Fetch extends Component {
 
   update(nextState, currentPromise) {
     if (currentPromise) {
+      // Handle (i.e. ignore) promises resolved out of order from requests
       const index = this.promises.indexOf(currentPromise);
       if (index === -1) {
         // Ignore update as a later request/promise has already been processed
