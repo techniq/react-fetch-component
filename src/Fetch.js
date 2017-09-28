@@ -99,11 +99,13 @@ export default class Fetch extends Component {
           return newState
         });
 
-        this.promises.push(promise);
+      this.promises.push(promise);
 
       if (cache) {
         this.cache[url] = promise;
       }
+
+      return promise;
     }
   }
 
