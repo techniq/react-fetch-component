@@ -58,7 +58,7 @@ export default class Fetch extends Component {
     if (cache && this.cache[url]) {
       // Restore cached state
       const promise = this.cache[url];
-      promise.then(cachedState => this.update(cachedState, null, promise));
+      promise.then(cachedState => this.update(cachedState, promise));
       this.promises.push(promise);
     } else {
       this.update({ request, loading: true });
@@ -78,7 +78,7 @@ export default class Fetch extends Component {
             response
           }
 
-          this.update(newState, null, promise);
+          this.update(newState, promise);
 
           return newState;
         })
@@ -91,7 +91,7 @@ export default class Fetch extends Component {
             loading: false
           }
 
-          this.update(newState, null, promise);
+          this.update(newState, promise);
 
           // Rethrow so not to swallow errors, especially from errors within handlers (children func / onChange)
           throw(error);
@@ -113,7 +113,7 @@ export default class Fetch extends Component {
     this.setState({ data: undefined })
   }
 
-  update(nextState, callback, currentPromise) {
+  update(nextState, currentPromise) {
     if (currentPromise) {
       const index = this.promises.indexOf(currentPromise);
       if (index === -1) {
@@ -141,7 +141,7 @@ export default class Fetch extends Component {
     // Ignore passing state down if no longer mounted
     if (this.mounted) {
       // If `onDataChange` prop returned a value, we use it for data passed down to the children function
-      this.setState({ ...nextState, ...data && { data } }, callback);
+      this.setState({ ...nextState, ...data && { data } });
     }
   }
 
