@@ -474,6 +474,22 @@ describe('fetching', () => {
 
     expect(fetchMock.called(url)).toBe(true);
   });
+
+  it('supports custom fetch function passed into props', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+    
+    const mockFetch = jest.fn();
+    mockFetch.mockImplementation(fetch);
+
+    const wrapper = mount(<Fetch url={url} fetchingFunction={mockFetch}></Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    expect(mockFetch).toBeCalledWith('http://localhost', undefined);    
+  });
 });
 
 describe('error handling', () => {
