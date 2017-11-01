@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 export default class Fetch extends Component {
   static defaultProps = {
     as: 'json',
-    fetchingFunction: (url, options) => fetch(url, options)
+    fetchFunction: (url, options) => fetch(url, options)
   }
 
   state = {
@@ -64,7 +64,7 @@ export default class Fetch extends Component {
     } else {
       this.update({ request, loading: true }, null, updateOptions);
 
-      const promise = this.props.fetchingFunction(url, options)
+      const promise = this.props.fetchFunction(url, options)
         .then(response => {
           return response[as]()
             .then(data   => ({ response, data }))
