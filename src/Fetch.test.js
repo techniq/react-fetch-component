@@ -478,13 +478,10 @@ describe('fetching', () => {
   it('supports custom fetch function passed into props', async () => {
     const url = 'http://localhost';
     const data = { hello: 'world' };
-    
+    fetchMock.once(url, data);
     
     const mockFetch = jest.fn();
-    mockFetch.mockImplementation((url, options) => {
-      var response = new Promise((resolve, reject) => resolve({'json': ()=> Promise.resolve('dummytext')}))
-      return response
-    });
+    mockFetch.mockImplementation(fetch);
 
     const wrapper = mount(<Fetch url={url} fetchFunction={mockFetch}></Fetch>);
     const instance = wrapper.instance();
