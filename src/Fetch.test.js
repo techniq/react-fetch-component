@@ -522,6 +522,7 @@ describe('fetching', () => {
     
     debounceRequest.mockImplementation(request); 
 
+    // Second instance is for comparison
     const wrapper = mount(<Fetch url={url} fetchFunction={debounceRequest}></Fetch>);
     const wrapper2 = mount(<Fetch url={url} fetchFunction={nondebounceRequest}></Fetch>);
     const instance = wrapper.instance();
@@ -530,10 +531,11 @@ describe('fetching', () => {
     instance2.fetch();
     instance.fetch();
     
+    //don t wait for Promises that will never resolve because of cleared timeout, only for the last one
     await instance.promises[1];
     await Promise.all(instance2.promises);
     
-
+  //dont expect debounceRequest, that one is called everytime before deboucing
   expect(mockFetch).toHaveBeenCalledTimes(1)
   expect(nondebounceRequest).toHaveBeenCalledTimes(2)  
   });
