@@ -490,6 +490,53 @@ describe('fetching', () => {
 
     expect(mockFetch).toBeCalledWith('http://localhost', undefined);    
   });
+
+  it('supports custom fetch function passed into props with custom debouncing', async () => {
+    let url = 'http://localhost'
+    const data = { hello: 'world' }
+    const debounceTimer = 100;
+    const mockFetch = jest.fn().mockImplementation(fetch)
+    let debounce = undefined
+    
+
+    const nondebounceRequest = jest.fn().mockImplementation(fetch)    
+    const debounceRequest = jest.fn()
+    fetchMock.mock(url, data) 
+
+    function delayedRequest(url, options, ms) {
+      return new Promise((resolve, reject) => {
+        debounce = setTimeout(() => {
+          resolve(mockFetch(url, options).then(res => res)
+          .catch(err => {
+            reject(err)
+            return err;
+          })
+        )}, ms
+      )})
+    }
+
+    const request = async (url, options) => {
+      clearTimeout(debounce);      
+      return await delayedRequest(url, options, debounceTimer)
+    }
+    
+    debounceRequest.mockImplementation(request); 
+
+    const wrapper = mount(<Fetch url={url} fetchFunction={debounceRequest}></Fetch>);
+    const wrapper2 = mount(<Fetch url={url} fetchFunction={nondebounceRequest}></Fetch>);
+    const instance = wrapper.instance();
+    const instance2 = wrapper2.instance();
+    url = 'something else'
+    instance2.fetch();
+    instance.fetch();
+    
+    await instance.promises[1];
+    await Promise.all(instance2.promises);
+    
+
+  expect(mockFetch).toHaveBeenCalledTimes(1)
+  expect(nondebounceRequest).toHaveBeenCalledTimes(2)  
+  });
 });
 
 describe('error handling', () => {
