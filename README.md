@@ -49,6 +49,8 @@ An example of destructing and using the most common properties `loading`, `error
 - `onDataChange` (function) - Function called only when data is changed.  It is called before `onChange`, and if a result is returned (i.e. not `undefined`), this value will be used as `data` passed to `onChange` and the child function instead of the original data.  `onDataChange` also receives the current data as the second parameter, which allows for concatenating data (ex. infinity scroll).
 - `onChange` (function) - Function called with same props as child function.  Useful to call `setState` (or dispatch a redux action) since this is not allowed within `render`.  `onChange` will always be called even if `<Fetch />` component has been unmounted.
   - default: `undefined`
+- `fetchFunction` (function) - Specify own fetch function.  Useful to debounce fetch requests (although probably best to debounce outside of `<Fetch />` so not call unneccessary renders)
+  - default: `window.fetch`
 
 ## Object properties passed to child function
 - `loading`

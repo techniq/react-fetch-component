@@ -474,6 +474,113 @@ describe('fetching', () => {
 
     expect(fetchMock.called(url)).toBe(true);
   });
+
+  it('supports custom fetch function passed into props', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+    
+    const mockFetch = jest.fn();
+    mockFetch.mockImplementation(fetch);
+
+    const wrapper = mount(<Fetch url={url} fetchFunction={mockFetch}></Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    expect(mockFetch).toBeCalledWith('http://localhost', undefined);    
+  });
+
+  it('supports custom fetch function passed into props with custom debouncing', async () => {
+    let url = 'http://localhost'
+    const data = { hello: 'world' }
+    fetchMock.mock(url, data) 
+
+    const nonDebouncedFetch = jest.fn().mockImplementation(fetch); 
+
+    // See: https://stackoverflow.com/a/35228455/191902 or https://github.com/bjoerge/debounce-promise
+    function debouncePromise(inner, ms = 0) {
+      let timer = null;
+      let resolves = [];
+    
+      return function (...args) {    
+        // Run the function after a certain amount of time
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          // Get the result of the inner function, then apply it to the resolve function of
+          // each promise that has been created since the last time the inner function was run
+          let result = inner(...args);
+          resolves.forEach(r => r(result));
+          resolves = [];
+        }, ms);
+    
+        return new Promise(r => resolves.push(r));
+      };
+    }
+
+    const debouncedMockChildren = jest.fn().mockReturnValue(<div />)
+    const debouncedFetchMock = jest.fn().mockImplementation(fetch);
+    const debouncedFetch = jest.fn().mockImplementation(debouncePromise(debouncedFetchMock, 10));
+    const debouncedWrapper = mount(<Fetch url={url} fetchFunction={debouncedFetch}>{debouncedMockChildren}</Fetch>);
+    const debouncedInstance = debouncedWrapper.instance();
+    debouncedInstance.fetch();
+    debouncedInstance.fetch();
+    debouncedInstance.fetch();
+
+    const nonDebouncedMockChildren = jest.fn().mockReturnValue(<div />)
+    const nonDebouncedWrapper = mount(<Fetch url={url} fetchFunction={nonDebouncedFetch}>{nonDebouncedMockChildren}</Fetch>);
+    const nonDebouncedInstance = nonDebouncedWrapper.instance();
+    nonDebouncedInstance.fetch();
+    nonDebouncedInstance.fetch();
+    nonDebouncedInstance.fetch();
+    
+    await Promise.all(debouncedInstance.promises);
+    await Promise.all(nonDebouncedInstance.promises);
+    
+    expect(nonDebouncedFetch).toHaveBeenCalledTimes(4)  
+    expect(nonDebouncedMockChildren).toHaveBeenCalledTimes(9); 
+    // Initial state
+    expect(nonDebouncedMockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+    // Loading request 1
+    expect(nonDebouncedMockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+    // Loading request 2
+    expect(nonDebouncedMockChildren.mock.calls[2][0]).toMatchObject({ loading: true, request: {} });
+    // Loading request 3
+    expect(nonDebouncedMockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    // Loading request 4
+    expect(nonDebouncedMockChildren.mock.calls[4][0]).toMatchObject({ loading: true, request: {} });
+    // Data loaded request 1
+    expect(nonDebouncedMockChildren.mock.calls[5][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+    // Data loaded request 2
+    expect(nonDebouncedMockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+    // Data loaded request 3
+    expect(nonDebouncedMockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+    // Data loaded request 4
+    expect(nonDebouncedMockChildren.mock.calls[8][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+    expect(debouncedFetch).toHaveBeenCalledTimes(4);
+    expect(debouncedFetchMock).toHaveBeenCalledTimes(1);
+    expect(debouncedMockChildren).toHaveBeenCalledTimes(8);
+
+    // TODO: Find way to check data returned(not just the existence of the `data` key.  i.e.  `data: {}`)
+    // TODO: Determine why there are 3 data loaded states instead of 4 (and would be nice if there was only 1)
+    // Initial state
+    expect(debouncedMockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+    // Loading request 1
+    expect(debouncedMockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+    // Loading request 2
+    expect(debouncedMockChildren.mock.calls[2][0]).toMatchObject({ loading: true, request: {} });
+    // Loading request 3
+    expect(debouncedMockChildren.mock.calls[3][0]).toMatchObject({ loading: true, request: {} });
+    // Loading request 4
+    expect(debouncedMockChildren.mock.calls[4][0]).toMatchObject({ loading: true, request: {} });
+    // Data loaded request 1
+    expect(debouncedMockChildren.mock.calls[5][0]).toMatchObject({ loading: false, data: {}, request: {}, response: {} });
+    // Data loaded request 2, should be the same as in data 1...
+    expect(debouncedMockChildren.mock.calls[6][0]).toMatchObject({ loading: false, data: {}, request: {}, response: {} });
+    // Data loaded request 3 and 4(?) should be the same as in data 1...
+    expect(debouncedMockChildren.mock.calls[7][0]).toMatchObject({ loading: false, data: {}, request: {}, response: {} });
+  });
 });
 
 describe('error handling', () => {
@@ -482,8 +589,7 @@ describe('error handling', () => {
     const error = { Error: 'BOOM!' };
     fetchMock.once(url, { status: 500, body: error });
 
-    const mockChildren = jest.fn();
-    mockChildren.mockReturnValue(<div />)
+    const mockChildren = jest.fn().mockReturnValue(<div />)
 
     const wrapper = mount(<Fetch url={url}>{mockChildren}</Fetch>);
     const instance = wrapper.instance();
@@ -1319,6 +1425,7 @@ describe('middleware', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 });
+
 // TODO: Having difficulting testing/mocking this
 /*it('can use onChange with setState to control rendering instead of child function', async () => {
   const data = { hello: 'world' };
