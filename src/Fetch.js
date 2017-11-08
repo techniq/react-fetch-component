@@ -137,7 +137,7 @@ export default class Fetch extends Component {
 
     if (typeof onChange === 'function') {
       // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
-      onChange({ ...this.state, ...nextState, ...data && { data } });
+      onChange({ ...this.state, ...nextState, ...data !== undefined && { data } });
     }
 
     // Ignore passing state down if no longer mounted
