@@ -143,7 +143,7 @@ export default class Fetch extends Component {
     // Ignore passing state down if no longer mounted
     if (this.mounted) {
       // If `onDataChange` prop returned a value, we use it for data passed down to the children function
-      this.setState({ ...nextState, ...data && { data } });
+      this.setState({ ...nextState, ...data !== undefined && { data } });
     }
   }
 

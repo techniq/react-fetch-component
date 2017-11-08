@@ -968,6 +968,37 @@ describe('onDataChange', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 
+  it('passes updated data to children function if `onDataChange` is set and returns a falsy value (ex. 0)', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const changedData = 0;
+    const handleOnDataChange = (data) => changedData;
+
+    const wrapper = mount(<Fetch url={url} onDataChange={handleOnDataChange}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: changedData, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
   it('supports modifying data using "onDataChange" and subsequent fetchs', async () => {
     const url = 'http://localhost';
     const responseData1 = { value: 1 };
