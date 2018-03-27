@@ -1,10 +1,44 @@
 import React, { Component } from 'react';
+import MIMEType from 'whatwg-mimetype';
+
+export const parseBody = response => {
+  const contentType = response.headers.get('Content-Type');
+  // console.log('contentType', contentType);
+
+  // Do not attempt to parse empty response
+  if (contentType === null) {
+    return Promise.resolve(null)
+  }
+
+  const mimeType = new MIMEType(contentType);
+
+  if (
+    mimeType.essence === 'application/json' ||
+    mimeType.essence === 'text/json' ||
+    /\+json$/.test(mimeType.subtype) // ends with "+json"
+  ) {
+    // https://mimesniff.spec.whatwg.org/#json-mime-type
+    return response.json();
+  } else if (mimeType.essence === 'text/html') {
+    // https://mimesniff.spec.whatwg.org/#html-mime-type
+    return response.text();
+  } else if (
+    mimeType.essence === 'application/xml' ||
+    mimeType.essence === 'text/xml' ||
+    /\+xml$/.test(mimeType.subtype) // ends with "+xml"
+  ) {
+    // https://mimesniff.spec.whatwg.org/#xml-mime-type
+    return response.text();
+  } else {
+    return response.arrayBuffer();
+  }
+};
 
 export default class Fetch extends Component {
   static defaultProps = {
-    as: 'json',
+    as: 'auto',
     fetchFunction: (url, options) => fetch(url, options)
-  }
+  };
 
   state = {
     request: {
@@ -13,13 +47,13 @@ export default class Fetch extends Component {
     },
     fetch: this.fetch.bind(this),
     clearData: this.clearData.bind(this),
-    loading: null,
+    loading: null
   };
   cache = {};
   promises = [];
 
   getOptions(options) {
-    return (typeof options === 'function') ? options() : options;
+    return typeof options === 'function' ? options() : options;
   }
 
   componentDidMount() {
@@ -53,36 +87,39 @@ export default class Fetch extends Component {
       url = this.props.url;
     }
 
-    options = this.getOptions(options || this.props.options)
-    const request = { url, options }
+    options = this.getOptions(options || this.props.options);
+    const request = { url, options };
 
     if (cache && this.cache[url]) {
       // Restore cached state
       const promise = this.cache[url];
-      promise.then(cachedState => this.update(cachedState, promise, updateOptions));
+      promise.then(cachedState =>
+        this.update(cachedState, promise, updateOptions)
+      );
       this.promises.push(promise);
     } else {
       this.update({ request, loading: true }, null, updateOptions);
 
-      const promise = this.props.fetchFunction(url, options)
+      const promise = this.props
+        .fetchFunction(url, options)
         .then(response => {
-          const contentLength = response.headers.get('Content-Length');
-          if (contentLength > 0) {
-            return response[as]()
-              .then(data   => ({ response, data }))
-              .catch(error => ({ response, data: error }))
-          } else {
-            return { response, data: null };
-          }
+          const dataPromise = 
+            typeof as === 'function' ? as(response) :
+            as === 'auto' ? parseBody(response) :
+            response[as]();
+
+          return dataPromise
+            .then(data => ({ response, data }))
+            .catch(error => ({ response, data: error }));
         })
         .then(({ response, data }) => {
           const newState = {
             request,
             loading: false,
-            [response.ok ? 'error' : 'data' ]: undefined, // Clear last response
-            [response.ok ? 'data'  : 'error']: data,
+            [response.ok ? 'error' : 'data']: undefined, // Clear last response
+            [response.ok ? 'data' : 'error']: data,
             response
-          }
+          };
 
           this.update(newState, promise, updateOptions);
 
@@ -95,14 +132,14 @@ export default class Fetch extends Component {
             data: undefined,
             error,
             loading: false
-          }
+          };
 
           this.update(newState, promise, updateOptions);
 
           // Rethrow so not to swallow errors, especially from errors within handlers (children func / onChange)
-          throw(error);
+          throw error;
 
-          return newState
+          return newState;
         });
 
       this.promises.push(promise);
@@ -116,7 +153,7 @@ export default class Fetch extends Component {
   }
 
   clearData() {
-    this.setState({ data: undefined })
+    this.setState({ data: undefined });
   }
 
   update(nextState, currentPromise, options = {}) {
@@ -127,7 +164,7 @@ export default class Fetch extends Component {
         // Ignore update as a later request/promise has already been processed
         return;
       }
-      
+
       // Remove currently resolved promise and any outstanding promises
       // (which will cause them to be ignored when they do resolve/reject)
       this.promises.splice(0, index + 1);
@@ -136,19 +173,30 @@ export default class Fetch extends Component {
     const { onChange, onDataChange } = this.props;
 
     let data = undefined;
-    if (nextState.data && nextState.data !== this.state.data && typeof onDataChange === 'function') {
-      data = onDataChange(nextState.data, options.ignorePreviousData ? undefined : this.state.data)
+    if (
+      nextState.data &&
+      nextState.data !== this.state.data &&
+      typeof onDataChange === 'function'
+    ) {
+      data = onDataChange(
+        nextState.data,
+        options.ignorePreviousData ? undefined : this.state.data
+      );
     }
 
     if (typeof onChange === 'function') {
       // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
-      onChange({ ...this.state, ...nextState, ...data !== undefined && { data } });
+      onChange({
+        ...this.state,
+        ...nextState,
+        ...(data !== undefined && { data })
+      });
     }
 
     // Ignore passing state down if no longer mounted
     if (this.mounted) {
       // If `onDataChange` prop returned a value, we use it for data passed down to the children function
-      this.setState({ ...nextState, ...data !== undefined && { data } });
+      this.setState({ ...nextState, ...(data !== undefined && { data }) });
     }
   }
 
@@ -159,19 +207,19 @@ export default class Fetch extends Component {
 }
 
 export function renderChildren(children, fetchProps) {
-  if (typeof(children) === 'function') {
+  if (typeof children === 'function') {
     const childrenResult = children(fetchProps);
     if (typeof childrenResult === 'function') {
-      return renderChildren(childrenResult, fetchProps)
+      return renderChildren(childrenResult, fetchProps);
     } else {
       return childrenResult;
     }
   } else if (React.Children.count(children) === 0) {
-    return null
+    return null;
   } else {
     // DOM/Component children
     // TODO: Better to check if children count === 1 and return null otherwise (like react-router)?
     //       Currently not possible to support multiple children components/elements (until React fiber)
-    return React.Children.only(children)
+    return React.Children.only(children);
   }
 }

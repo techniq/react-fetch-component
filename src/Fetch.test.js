@@ -612,6 +612,92 @@ describe('fetching', () => {
   });
 });
 
+describe('body passing', () => {
+  it('handles default (auto) with json response', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const wrapper = mount(<Fetch url={url}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('handles default (auto) with html response', async () => {
+    const url = 'http://localhost';
+    const data = "<html />";
+    fetchMock.once(url, { body: data, headers: { 'content-type': 'text/html' }});
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const wrapper = mount(<Fetch url={url}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('supports "as" as a function for custom body parsing', async () => {
+    const url = 'http://localhost';
+    const data = { "foo": "foo" };
+    fetchMock.once(url, { body: data });
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const wrapper = mount(<Fetch url={url} as={res => res.text() }>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: JSON.stringify(data), request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+});
+
 describe('error handling', () => {
   it('sets error on failure', async () => {
     const url = 'http://localhost';

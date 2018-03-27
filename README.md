@@ -35,13 +35,14 @@ An example of destructing and using the most common properties `loading`, `error
 - `options` (object|function) - request options such as `method`, `headers`, `credentials`, etc.  If passed as a function, it will not be evaluated until the request is sent, which is useful when calling expensive methods like `JSON.stringify` for `options.body` for example.
   - see [Request properties](https://developer.mozilla.org/en-US/docs/Web/API/Request#Properties) for all available options.
 - `as` - declare how to handle the response body
-  - default: `json`
-  - can be set to any [body method](https://developer.mozilla.org/en-US/docs/Web/API/Body#Methods) including:
+  - default: `auto` (will attempt to parse body based on `Content-Type` header)
+  - can either be a string for any of the [body methods](https://developer.mozilla.org/en-US/docs/Web/API/Body#Methods) including:
     - `arrayBuffer`
     - `blob`
     - `formData`
     - `json`
     - `text`
+  - or a `function` that takes in the `response` and returns a `Promise`.  For example `<Fetch as={res => res.text()} />`
 - `cache` (boolean) - If true, will cache responses by `url` and return from cache without issuing another request.  Useful for typeahead features, etc.
   - default: `false`
 - `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests.
