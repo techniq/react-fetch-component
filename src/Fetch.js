@@ -72,7 +72,7 @@ export default class Fetch extends Component {
               .then(data   => ({ response, data }))
               .catch(error => ({ response, data: error }))
           } else {
-            return { response };
+            return { response, data: null };
           }
         })
         .then(({ response, data }) => {

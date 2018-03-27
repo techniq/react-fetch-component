@@ -89,7 +89,7 @@ describe('basic', () => {
     expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
 
     // Data loaded
-    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, error: undefined, request: {}, response: {} });
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: undefined, error: null, request: {}, response: { status: 404 } });
 
     expect(fetchMock.called(url)).toBe(true);
   });
