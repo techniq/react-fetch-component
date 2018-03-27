@@ -67,6 +67,33 @@ describe('basic', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 
+  it('does not process empty body', async () => {
+    const url = 'http://localhost';
+    fetchMock.once(url, { status: 404 });
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const wrapper = mount(<Fetch url={url}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, error: undefined, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
   it('supports options as function', async () => {
     const url = 'http://localhost';
     const data = { hello: 'world' };

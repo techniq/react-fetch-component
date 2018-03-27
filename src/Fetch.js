@@ -66,9 +66,14 @@ export default class Fetch extends Component {
 
       const promise = this.props.fetchFunction(url, options)
         .then(response => {
-          return response[as]()
-            .then(data   => ({ response, data }))
-            .catch(error => ({ response, data: error }))
+          const contentLength = response.headers.get('Content-Length');
+          if (contentLength > 0) {
+            return response[as]()
+              .then(data   => ({ response, data }))
+              .catch(error => ({ response, data: error }))
+          } else {
+            return { response };
+          }
         })
         .then(({ response, data }) => {
           const newState = {
