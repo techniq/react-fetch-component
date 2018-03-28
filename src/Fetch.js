@@ -1,31 +1,29 @@
 import React, { Component } from 'react';
-import MIMEType from 'whatwg-mimetype';
 
 export const parseBody = response => {
   const contentType = response.headers.get('Content-Type');
-  // console.log('contentType', contentType);
 
   // Do not attempt to parse empty response
   if (contentType === null) {
     return Promise.resolve(null)
   }
 
-  const mimeType = new MIMEType(contentType);
+  const mimeType = contentType.split(';')[0].trim();
 
   if (
-    mimeType.essence === 'application/json' ||
-    mimeType.essence === 'text/json' ||
-    /\+json$/.test(mimeType.subtype) // ends with "+json"
+    mimeType === 'application/json' ||
+    mimeType === 'text/json' ||
+    /\+json$/.test(mimeType) // ends with "+json"
   ) {
     // https://mimesniff.spec.whatwg.org/#json-mime-type
     return response.json();
-  } else if (mimeType.essence === 'text/html') {
+  } else if (mimeType === 'text/html') {
     // https://mimesniff.spec.whatwg.org/#html-mime-type
     return response.text();
   } else if (
-    mimeType.essence === 'application/xml' ||
-    mimeType.essence === 'text/xml' ||
-    /\+xml$/.test(mimeType.subtype) // ends with "+xml"
+    mimeType === 'application/xml' ||
+    mimeType === 'text/xml' ||
+    /\+xml$/.test(mimeType) // ends with "+xml"
   ) {
     // https://mimesniff.spec.whatwg.org/#xml-mime-type
     return response.text();

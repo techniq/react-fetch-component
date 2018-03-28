@@ -37,7 +37,5 @@
       "<rootDir>/config/testSetup.js"
     ]
   },
-  "dependencies": {
-    "whatwg-mimetype": "^2.1.0"
-  }
+  "dependencies": {}
 }
