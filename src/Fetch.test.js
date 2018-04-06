@@ -696,6 +696,66 @@ describe('body passing', () => {
 
     expect(fetchMock.called(url)).toBe(true);
   });
+
+
+
+  it('supports "as" as an object with simple name for custom body parsing', async () => {
+    const url = 'http://localhost';
+    const date = new Date();
+    const data = { someDate: date.toISOString() };
+    fetchMock.once(url, { body: data });
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />)
+
+    const wrapper = mount(<Fetch url={url} as={{ json: async res => JSON.parse(await res.text(), reviver) }}>{mockChildren}</Fetch>);
+    const instance = wrapper.instance();
+
+    await Promise.all(instance.promises);
+
+    // Once for initial, once for loading, and once for response
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: { someDate: date }, request: {}, response: {} });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+});
+
+it.only('supports "as" as an object with Content-Type for custom body parsing', async () => {
+  const url = 'http://localhost';
+  const date = new Date();
+  const data = { someDate: date.toISOString() };
+  fetchMock.once(url, { body: data });
+
+  const mockChildren = jest.fn();
+  mockChildren.mockReturnValue(<div />)
+
+  const wrapper = mount(<Fetch url={url} as={{ 'application/json': async res => JSON.parse(await res.text(), reviver) }}>{mockChildren}</Fetch>);
+  const instance = wrapper.instance();
+
+  await Promise.all(instance.promises);
+
+  // Once for initial, once for loading, and once for response
+  expect(mockChildren.mock.calls.length).toBe(3);
+
+  // Initial state
+  expect(mockChildren.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+
+  // Loading...
+  expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
+
+  // Data loaded
+  expect(mockChildren.mock.calls[2][0]).toMatchObject({ loading: false, data: { someDate: date }, request: {}, response: {} });
+
+  expect(fetchMock.called(url)).toBe(true);
 });
 
 describe('error handling', () => {
@@ -1625,3 +1685,15 @@ describe('middleware', () => {
 
 // TODO: Test changing props updates `request` passed
 // TODO: Make sure all errors are not swallowed (just fetch-related like CORS issue)
+
+
+// Restore ISO-8601 date strings as `Date` objects when parsing JSON
+const DATETIME_FORMAT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/; // yyyy-mm-ddThh:mm:ssZ
+function reviver(key, value) {
+  if (typeof value === 'string' && DATETIME_FORMAT.test(value)) {
+    // datetime in UTC
+    return new Date(value);
+  }
+
+  return value;
+}
