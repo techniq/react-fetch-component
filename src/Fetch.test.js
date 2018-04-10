@@ -5,7 +5,7 @@ import fetchMock from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = false;
 
-import Fetch, { SimpleCache } from './Fetch';
+import Fetch, { SimpleCache } from './';
 
 configure({ adapter: new Adapter() });
 
