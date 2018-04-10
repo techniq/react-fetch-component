@@ -729,7 +729,7 @@ describe('body passing', () => {
   });
 });
 
-it.only('supports "as" as an object with Content-Type for custom body parsing', async () => {
+it('supports "as" as an object with Content-Type for custom body parsing', async () => {
   const url = 'http://localhost';
   const date = new Date();
   const data = { someDate: date.toISOString() };
