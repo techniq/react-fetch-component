@@ -5,7 +5,7 @@ import fetchMock from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = false;
 
-import Fetch from './Fetch';
+import Fetch, { SimpleCache } from './Fetch';
 
 configure({ adapter: new Adapter() });
 
@@ -932,6 +932,93 @@ describe('cache', () => {
 
     // All promises have been processed
     expect(instance.promises.length).toEqual(0)
+  })
+
+  it('cache not shared between instances by default', async () => {
+    const url = 'http://localhost/foo';
+    const data = { name: 'foo' };
+    fetchMock.get(url, data);
+
+    // First request/instance
+    const mockChildren1 = jest.fn();
+    mockChildren1.mockReturnValue(<div />)
+    const wrapper1 = mount(<Fetch url={url} cache>{mockChildren1}</Fetch>);
+    const instance1 = wrapper1.instance();
+    const promise1 = instance1.promises[0];
+
+    // Second request/instance
+    const mockChildren2 = jest.fn();
+    mockChildren2.mockReturnValue(<div />)
+    const wrapper2 = mount(<Fetch url={url} cache>{mockChildren2}</Fetch>);
+    const instance2 = wrapper2.instance();
+    const promise2 = instance2.promises[0];
+
+    expect(promise1).not.toBe(promise2);
+
+    // Should be called by both instances
+    expect(fetchMock.calls(url).length).toBe(2);
+
+    await Promise.all(instance1.promises);
+
+    // Instance1
+    expect(mockChildren1.mock.calls.length).toBe(3);
+    expect(mockChildren1.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+    expect(mockChildren1.mock.calls[1][0]).toMatchObject({ loading: true, request: { url } });
+    expect(mockChildren1.mock.calls[2][0]).toMatchObject({ loading: false, data, request: { url }, response: {} });
+    // All promises have been processed
+    expect(instance1.promises.length).toEqual(0)
+
+    // Instance2
+    expect(mockChildren2.mock.calls.length).toBe(3);
+    expect(mockChildren2.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+    expect(mockChildren1.mock.calls[1][0]).toMatchObject({ loading: true, request: { url } });
+    expect(mockChildren2.mock.calls[2][0]).toMatchObject({ loading: false, data, request: { url }, response: {} });
+    // All promises have been processed
+    expect(instance2.promises.length).toEqual(0)
+  })
+
+  it('should support passing a shared cache to multiple instances', async () => {
+    const url = 'http://localhost/foo';
+    const data = { name: 'foo' };
+    const sharedCache = new SimpleCache();
+    fetchMock.get(url, data);
+
+    // First request/instance
+    const mockChildren1 = jest.fn();
+    mockChildren1.mockReturnValue(<div />)
+    const wrapper1 = mount(<Fetch url={url} cache={sharedCache}>{mockChildren1}</Fetch>);
+    const instance1 = wrapper1.instance();
+    const promise1 = instance1.promises[0];
+
+    // Second request/instance
+    const mockChildren2 = jest.fn();
+    mockChildren2.mockReturnValue(<div />)
+    const wrapper2 = mount(<Fetch url={url} cache={sharedCache}>{mockChildren2}</Fetch>);
+    const instance2 = wrapper2.instance();
+    const promise2 = instance2.promises[0];
+
+    // Should be the same instance
+    expect(promise1).toBe(promise2);
+
+    // Should only be called by the first instance
+    expect(fetchMock.calls(url).length).toBe(1);
+
+    // Instance1
+    await Promise.all(instance1.promises);
+    expect(mockChildren1.mock.calls.length).toBe(3);
+    expect(mockChildren1.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+    expect(mockChildren1.mock.calls[1][0]).toMatchObject({ loading: true, request: { url } });
+    expect(mockChildren1.mock.calls[2][0]).toMatchObject({ loading: false, data, request: { url }, response: {} });
+    // All promises have been processed
+    expect(instance1.promises.length).toEqual(0)
+
+    // Instance2
+    await Promise.all(instance2.promises);
+    expect(mockChildren2.mock.calls.length).toBe(2);
+    expect(mockChildren2.mock.calls[0][0]).toMatchObject({ loading: null, request: {} });
+    expect(mockChildren2.mock.calls[1][0]).toMatchObject({ loading: false, data, request: { url }, response: {} });
+    // All promises have been processed
+    expect(instance2.promises.length).toEqual(0)
   })
 });
 

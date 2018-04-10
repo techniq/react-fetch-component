@@ -50,16 +50,24 @@ export default class Fetch extends Component {
     clearData: this.clearData.bind(this),
     loading: null
   };
-  cache = {};
+  cache = null;
   promises = [];
 
   getOptions(options) {
     return typeof options === 'function' ? options() : options;
   }
 
+  setCache(cache) {
+    this.cache = this.props.cache === true ? new SimpleCache() 
+      : typeof this.props.cache === "object" ? this.props.cache 
+      : null;
+  }
+
   componentDidMount() {
-    const { url, options, manual, onChange } = this.props;
+    const { url, options, manual, onChange, cache } = this.props;
     this.mounted = true;
+
+    this.setCache(cache);
 
     if (typeof onChange === 'function') {
       onChange(this.state);
@@ -71,9 +79,13 @@ export default class Fetch extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { url, options, manual } = this.props;
+    const { url, options, manual, cache } = this.props;
     if (url !== prevProps.url && !manual) {
       this.fetch(url, options);
+    }
+
+    if (cache !== prevProps.cache) {
+      this.setCache(cache);
     }
   }
 
@@ -91,9 +103,9 @@ export default class Fetch extends Component {
     options = this.getOptions(options || this.props.options);
     const request = { url, options };
 
-    if (cache && this.cache[url]) {
+    if (this.cache && this.cache.get(url)) {
       // Restore cached state
-      const promise = this.cache[url];
+      const promise = this.cache.get(url);
       promise.then(cachedState =>
         this.update(cachedState, promise, updateOptions)
       );
@@ -146,8 +158,8 @@ export default class Fetch extends Component {
 
       this.promises.push(promise);
 
-      if (cache) {
-        this.cache[url] = promise;
+      if (this.cache) {
+        this.cache.set(url, promise);
       }
 
       return promise;
@@ -223,5 +235,28 @@ export function renderChildren(children, fetchProps) {
     // TODO: Better to check if children count === 1 and return null otherwise (like react-router)?
     //       Currently not possible to support multiple children components/elements (until React fiber)
     return React.Children.only(children);
+  }
+}
+
+export class SimpleCache {
+  cache = {};
+  get(url) {
+    return this.cache[url];
+  }
+
+  set(url, promise) {
+    // TODO: only retain successful responses?
+    //  `promise.then(({ error }) => { if (error) { this.remove(url) } })` (untested)
+    this.cache[url] = promise;
+  }
+
+  remove(url) {
+    delete this.cache[url];
+  }
+
+  clear() {
+    // TODO: Wait for all outstanding promises to resolve?
+    //   `Promise.all(Object.values(cache)).then(() => this.cache = {})` (untested)
+    this.cache = {};
   }
 }

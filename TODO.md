@@ -1,14 +1,5 @@
-## Tests
-- Does not cache if `cache` not set
-
 ## Features
-- Setup CI
 - PropTypes (include children as function) and/or Flow
-- Only cache on success?
-- Support user supplied caches (prefilled cache objects, LRU cache, etc)
-  - Maybe handle a function for the `cache` prop
-  - Support Server Worker caches / offline support (might be that we disable our own cache and defer to a Service Worker handling the cache network request)
-  - Support using https://github.com/facebook/dataloader
 - Do not allow multiple inflight fetch requests?
   - Add `debounce` / `throttle`
 - Setup UMD build

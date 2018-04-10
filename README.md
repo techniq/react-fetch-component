@@ -44,7 +44,11 @@ An example of destructing and using the most common properties `loading`, `error
     - `text`
   - or a `function` that takes in the `response` and returns a `Promise`.  For example `<Fetch as={res => res.text()} />`
   - or an `object` that maps the `Content-Type` of the response to a function that takes in the `response` and returns a `Promise`.  For example `<Fetch as={{ 'application/json': res => JSON.parse(res.text(), customReviver)}} />`.  `html`, `json`, `xml`, and `other` are also available for simplification. 
-- `cache` (boolean) - If true, will cache responses by `url` and return from cache without issuing another request.  Useful for typeahead features, etc.
+- `cache` (boolean|object)
+  - If set, will cache responses by `url` and return values from cache for matches urls without issues another request.  Useful for typeahead features, etc.
+  - If `true`, will use an instance of `SimpleCache` per component instance
+  - Can supply an instance with `get(url)` and `set(url, promise)` methods.  Passing an instance of `SimpleCache` allows for multiple instances to share the same (simple) cache
+  - Other implementations of a cache can be supplied for more control (LRU, persist to local/sessionStorage, etc)
   - default: `false`
 - `manual` (boolean) - If `true`, requires calling `fetch` explicitly to initiate requests.  Useful for better control of POST/PUT/PATCH requests.
   - default: `false`
