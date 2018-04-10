@@ -26,9 +26,10 @@ export default class Fetch extends Component {
   }
 
   setCache(cache) {
-    this.cache = this.props.cache === true ? new SimpleCache() 
-      : typeof this.props.cache === "object" ? this.props.cache 
-      : null;
+    this.cache =
+      this.props.cache === true
+        ? new SimpleCache()
+        : typeof this.props.cache === 'object' ? this.props.cache : null;
   }
 
   componentDidMount() {
@@ -84,11 +85,12 @@ export default class Fetch extends Component {
       const promise = this.props
         .fetchFunction(url, options)
         .then(response => {
-          const dataPromise = 
-            typeof as === 'function' ? as(response) :
-            typeof as === 'object' ? parseBody(response, as) :
-            as === 'auto' ? parseBody(response) :
-            response[as]();
+          const dataPromise =
+            typeof as === 'function'
+              ? as(response)
+              : typeof as === 'object'
+                ? parseBody(response, as)
+                : as === 'auto' ? parseBody(response) : response[as]();
 
           return dataPromise
             .then(data => ({ response, data }))
@@ -187,6 +189,3 @@ export default class Fetch extends Component {
     return renderChildren(children, this.state);
   }
 }
-
-
-
