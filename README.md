@@ -30,6 +30,27 @@ An example of destructing and using the most common properties `loading`, `error
 </Fetch>
 ```
 
+You can also use React's context via `<Fetch.Consumer>` for accessing the state in a deep tree (or to create components based on state)
+
+```js
+const Loading = () => <Fetch.Consumer>{({ loading }) => loading ? <MySpinner /> : null}</Fetch.Consumer>
+const Error = () => <Fetch.Consumer>{({ error }) => error ? <MyError error={error} /> : null}</Fetch.Consumer>
+
+<Fetch url="someUrl">
+  <div>
+    <div>
+      <div>
+        <Loading />
+        <Error />
+        <Fetch.Consumer>
+          {({ data }) => <div>{ data ? /* handle data here */ : null}</div>}
+        </Fetch.Consumer>
+      </div>
+    </div>
+  </div>
+</Fetch>
+```
+
 ## Props
 - `url` (string) - address of the request.  Initial fetch will only be created when it's a non-empty string.  You can initially set this to `undefined`, `false`, or an empty string to delay the fetch to a later render.
 - `options` (object|function) - request options such as `method`, `headers`, `credentials`, etc.  If passed as a function, it will not be evaluated until the request is sent, which is useful when calling expensive methods like `JSON.stringify` for `options.body` for example.
