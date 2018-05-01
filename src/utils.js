@@ -1,23 +1,5 @@
 import React from 'react';
 
-export function renderChildren(children, fetchProps) {
-  if (typeof children === 'function') {
-    const childrenResult = children(fetchProps);
-    if (typeof childrenResult === 'function') {
-      return renderChildren(childrenResult, fetchProps);
-    } else {
-      return childrenResult;
-    }
-  } else if (React.Children.count(children) === 0) {
-    return null;
-  } else {
-    // DOM/Component children
-    // TODO: Better to check if children count === 1 and return null otherwise (like react-router)?
-    //       Currently not possible to support multiple children components/elements (until React fiber)
-    return React.Children.only(children);
-  }
-}
-
 export const parseBody = (response, mapping = {}) => {
   const contentType = response.headers.get('Content-Type');
 

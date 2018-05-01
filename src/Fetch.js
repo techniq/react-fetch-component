@@ -3,11 +3,15 @@ import React, { Component } from 'react';
 import { parseBody, renderChildren } from './utils';
 import SimpleCache from './SimpleCache';
 
+const FetchContext = React.createContext({});
+
 export default class Fetch extends Component {
   static defaultProps = {
     as: 'auto',
     fetchFunction: (url, options) => fetch(url, options)
   };
+
+  static Consumer = FetchContext.Consumer;
 
   state = {
     request: {
@@ -29,7 +33,9 @@ export default class Fetch extends Component {
     this.cache =
       this.props.cache === true
         ? new SimpleCache()
-        : typeof this.props.cache === 'object' ? this.props.cache : null;
+        : typeof this.props.cache === 'object'
+          ? this.props.cache
+          : null;
   }
 
   componentDidMount() {
@@ -90,7 +96,9 @@ export default class Fetch extends Component {
               ? as(response)
               : typeof as === 'object'
                 ? parseBody(response, as)
-                : as === 'auto' ? parseBody(response) : response[as]();
+                : as === 'auto'
+                  ? parseBody(response)
+                  : response[as]();
 
           return dataPromise
             .then(data => ({ response, data }))
@@ -186,6 +194,15 @@ export default class Fetch extends Component {
 
   render() {
     const { children } = this.props;
-    return renderChildren(children, this.state);
+
+    return (
+      <FetchContext.Provider value={this.state}>
+        {typeof children === 'function' ? (
+          <FetchContext.Consumer>{children}</FetchContext.Consumer>
+        ) : (
+          children
+        )}
+      </FetchContext.Provider>
+    );
   }
 }

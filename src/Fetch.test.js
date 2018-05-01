@@ -2172,93 +2172,8 @@ describe('onDataChange', () => {
   });
 });
 
-describe('middleware', () => {
-  it('supports interceptor / middlware', async () => {
-    const url = 'http://localhost';
-    const data = { hello: 'world' };
-    fetchMock.once(url, data);
-
-    // const mockInterceptor = jest.fn();
-    // mockChildren.mockReturnValue(<div />)
-
-    const mockChildren = jest.fn();
-    mockChildren.mockReturnValue(<div />);
-
-    const middleware = fetchProps => mockChildren;
-
-    const {} = render(<Fetch url={url}>{middleware}</Fetch>);
-
-    // Once for initial, once for loading, and once for response
-    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
-
-    // Initial state
-    expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
-      request: {}
-    });
-
-    // Loading...
-    expect(mockChildren.mock.calls[1][0]).toMatchObject({
-      loading: true,
-      request: {}
-    });
-
-    // Data loaded
-    expect(mockChildren.mock.calls[2][0]).toMatchObject({
-      loading: false,
-      data,
-      request: {},
-      response: {}
-    });
-
-    expect(fetchMock.called(url)).toBe(true);
-  });
-});
-
-describe('middleware', () => {
-  it('supports interceptor / middlware', async () => {
-    const url = 'http://localhost';
-    const data = { hello: 'world' };
-    fetchMock.once(url, data);
-
-    // const mockInterceptor = jest.fn();
-    // mockChildren.mockReturnValue(<div />)
-
-    const mockChildren = jest.fn();
-    mockChildren.mockReturnValue(<div />);
-
-    const middleware = fetchProps => mockChildren;
-
-    const {} = render(<Fetch url={url}>{middleware}</Fetch>);
-
-    // Once for initial, once for loading, and once for response
-    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
-
-    // Initial state
-    expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
-      request: {}
-    });
-
-    // Loading...
-    expect(mockChildren.mock.calls[1][0]).toMatchObject({
-      loading: true,
-      request: {}
-    });
-
-    // Data loaded
-    expect(mockChildren.mock.calls[2][0]).toMatchObject({
-      loading: false,
-      data,
-      request: {},
-      response: {}
-    });
-
-    expect(fetchMock.called(url)).toBe(true);
-  });
-  // TODO: Add test for conditional returning based on request.status (ex. 401 returns login, 200 returns `children`)
-
-  it('supports multiple interceptors / middlwares', async () => {
+describe('context', () => {
+  it('deeply nested consumer', async () => {
     const url = 'http://localhost';
     const data = { hello: 'world' };
     fetchMock.once(url, data);
@@ -2266,9 +2181,9 @@ describe('middleware', () => {
     const mockChildren = jest.fn();
     mockChildren.mockReturnValue(<div />);
 
-    const middleware = fetchProps => fetchProps => mockChildren;
+    const Listener = () => <Fetch.Consumer>{mockChildren}</Fetch.Consumer>
 
-    const {} = render(<Fetch url={url}>{middleware}</Fetch>);
+    const {} = render(<Fetch url={url}><div><div><div><Listener /></div></div></div></Fetch>);
 
     // Once for initial, once for loading, and once for response
     await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
