@@ -320,10 +320,10 @@ describe('fetching', () => {
     mockChildren.mockReturnValue(<div />);
 
     // Initial url
-    const helpers1 = render(<Fetch url={url1} manual>{mockChildren}</Fetch>)
+    const { rerender } = render(<Fetch url={url1} manual>{mockChildren}</Fetch>)
 
     // Change url
-    const helpers2 = render(<Fetch url={url2} manual>{mockChildren}</Fetch>)
+    rerender(<Fetch url={url2} manual>{mockChildren}</Fetch>)
 
     expect(mockChildren.mock.calls.length).toBe(2);
 
@@ -1181,7 +1181,7 @@ describe('cache', () => {
     mockChildren.mockReturnValue(<div />);
 
     // First request
-    const { container } = render(
+    const { rerender } = render(
       <Fetch url={url1} cache>
         {mockChildren}
       </Fetch>
@@ -1189,19 +1189,33 @@ describe('cache', () => {
     expect(fetchMock.calls(url1).length).toBe(1);
 
     // Second request
-    const {} = render(
+    rerender(
       <Fetch url={url2} cache>
         {mockChildren}
       </Fetch>
-    , { container });
+    );
     expect(fetchMock.calls(url2).length).toBe(1);
 
     // Third, should be pulled from cache
-    const {} = render(
+    rerender(
       <Fetch url={url1} cache>
         {mockChildren}
       </Fetch>
-    , { container });
+    );
+    expect(fetchMock.calls(url1).length).toBe(1);
+
+      <Fetch url={url2} cache>
+        {mockChildren}
+      </Fetch>
+    );
+    expect(fetchMock.calls(url2).length).toBe(1);
+
+    // Third, should be pulled from cache
+    rerender(
+      <Fetch url={url1} cache>
+        {mockChildren}
+      </Fetch>
+    );
     expect(fetchMock.calls(url1).length).toBe(1);
 
     // TODO: not sure why 8 rerendered, would expect 7 (initial + 3x loading + 3x data)
