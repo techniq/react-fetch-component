@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, Simulate, wait } from 'react-testing-library'
+import { render, Simulate, wait } from 'react-testing-library';
 import fetchMock from 'fetch-mock';
 
 fetchMock.config.overwriteRoutes = false;
@@ -320,10 +320,18 @@ describe('fetching', () => {
     mockChildren.mockReturnValue(<div />);
 
     // Initial url
-    const { rerender } = render(<Fetch url={url1} manual>{mockChildren}</Fetch>)
+    const { rerender } = render(
+      <Fetch url={url1} manual>
+        {mockChildren}
+      </Fetch>
+    );
 
     // Change url
-    rerender(<Fetch url={url2} manual>{mockChildren}</Fetch>)
+    rerender(
+      <Fetch url={url2} manual>
+        {mockChildren}
+      </Fetch>
+    );
 
     expect(mockChildren.mock.calls.length).toBe(2);
 
@@ -671,8 +679,6 @@ describe('fetching', () => {
       };
     }
 
-
-    
     let debouncedMockChildrenSavedProps = null;
     const debouncedMockChildren = jest.fn(props => {
       debouncedMockChildrenSavedProps = props;
@@ -690,7 +696,6 @@ describe('fetching', () => {
     debouncedMockChildrenSavedProps.fetch();
     debouncedMockChildrenSavedProps.fetch();
     debouncedMockChildrenSavedProps.fetch();
-
 
     let nonDebouncedMockChildrenSavedProps = null;
     const nonDebouncedMockChildren = jest.fn(props => {
@@ -1190,20 +1195,6 @@ describe('cache', () => {
 
     // Second request
     rerender(
-      <Fetch url={url2} cache>
-        {mockChildren}
-      </Fetch>
-    );
-    expect(fetchMock.calls(url2).length).toBe(1);
-
-    // Third, should be pulled from cache
-    rerender(
-      <Fetch url={url1} cache>
-        {mockChildren}
-      </Fetch>
-    );
-    expect(fetchMock.calls(url1).length).toBe(1);
-
       <Fetch url={url2} cache>
         {mockChildren}
       </Fetch>
@@ -2195,9 +2186,19 @@ describe('context', () => {
     const mockChildren = jest.fn();
     mockChildren.mockReturnValue(<div />);
 
-    const Listener = () => <Fetch.Consumer>{mockChildren}</Fetch.Consumer>
+    const Listener = () => <Fetch.Consumer>{mockChildren}</Fetch.Consumer>;
 
-    const {} = render(<Fetch url={url}><div><div><div><Listener /></div></div></div></Fetch>);
+    const {} = render(
+      <Fetch url={url}>
+        <div>
+          <div>
+            <div>
+              <Listener />
+            </div>
+          </div>
+        </div>
+      </Fetch>
+    );
 
     // Once for initial, once for loading, and once for response
     await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
