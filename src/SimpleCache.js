@@ -1,13 +1,18 @@
 export default class SimpleCache {
   cache = {};
+
   get(url) {
     return this.cache[url];
   }
 
   set(url, promise) {
-    // TODO: only retain successful responses?
-    //  `promise.then(({ error }) => { if (error) { this.remove(url) } })` (untested)
     this.cache[url] = promise;
+
+    promise.then(({ error }) => {
+      if (error) {
+        this.remove(url);
+      }
+    });
   }
 
   remove(url) {
