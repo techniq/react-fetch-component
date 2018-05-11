@@ -1,5 +1,4 @@
 import { SimpleCache } from './';
-import fetchMock from 'fetch-mock';
 
 describe('SimpleCache', () => {
   const URL = 'http://localhost';
@@ -11,30 +10,24 @@ describe('SimpleCache', () => {
   
   describe('set', () => {
     it('keeps the promise in cache when no errors occur', async () => {
-      cache.set(URL, Promise.resolve({ data: 'foo' }));
+      const spy = jest.spyOn(cache, 'remove');
 
-      const promiseBefore = cache.get(URL);
-      expect(promiseBefore).toBeDefined();
-      expect(promiseBefore).not.toBeNull();
+      await cache.set(URL, Promise.resolve({ data: 'foo' }));
 
-      await fetchMock.flush();
-
-      const promiseAfter = cache.get(URL);
-      expect(promiseAfter).toBeDefined();
-      expect(promiseAfter).not.toBeNull();
+      const promise = cache.get(URL);
+      expect(promise).toBeDefined();
+      expect(promise).not.toBeNull();
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('removes the promise from the cache when an error occurs', async () => {
-      cache.set(URL, Promise.resolve({ error: 'bar' }));
+      const spy = jest.spyOn(cache, 'remove');
 
-      const promiseBefore = cache.get(URL);
-      expect(promiseBefore).toBeDefined();
-      expect(promiseBefore).not.toBeNull();
+      await cache.set(URL, Promise.resolve({ error: 'bar' }));
 
-      await fetchMock.flush();
-
-      const promiseAfter = cache.get(URL);
-      expect(promiseAfter).toBeUndefined();
+      const promise = cache.get(URL);
+      expect(promise).toBeUndefined();
+      expect(spy).toHaveBeenCalled();
     });
   });
 });
