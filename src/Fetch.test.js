@@ -396,11 +396,11 @@ describe('fetching', () => {
     mockChildren.mockReturnValue(<div />);
 
     // Mount component but should not issue request
-    const {} = render(<Fetch>{mockChildren}</Fetch>);
+    const { rerender } = render(<Fetch>{mockChildren}</Fetch>);
     expect(mockChildren.mock.calls.length).toBe(1);
 
     // Set url to issue request
-    const {} = render(<Fetch url={url}>{mockChildren}</Fetch>);
+    rerender(<Fetch url={url}>{mockChildren}</Fetch>);
 
     // Once for mount, once for the delayed setting of url, once for loading, and once for response
     await wait(() => expect(mockChildren.mock.calls.length).toBe(4));
@@ -415,6 +415,50 @@ describe('fetching', () => {
     expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: null });
 
     // Loading...
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
+      loading: true,
+      request: {}
+    });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({
+      loading: false,
+      data,
+      request: {},
+      response: {}
+    });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('does not re-fetch if url does not change and component is re-rendered', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />);
+
+    // Mount component but should not issue request
+    const { rerender } = render(<Fetch url={url}>{mockChildren}</Fetch>);
+    expect(mockChildren.mock.calls.length).toBe(2);
+
+    // Set url to issue request
+    rerender(<Fetch url={url}>{mockChildren}</Fetch>);
+
+    // Once for mount, once for the delayed setting of url, once for loading, and once for response
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(4));
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({
+      loading: null,
+      request: {}
+    });
+
+    // Setting the url but no fetch issued yet
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true });
+
+    // Re-render but no fetch
     expect(mockChildren.mock.calls[2][0]).toMatchObject({
       loading: true,
       request: {}
