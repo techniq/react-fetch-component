@@ -35,5 +35,6 @@
       "<rootDir>/config/testSetup.js"
     ]
   },
-  "dependencies": {}
+  "dependencies": {},
+  "typings": "index.d.ts"
 }
