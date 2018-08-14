@@ -55,7 +55,7 @@ export default class Fetch extends Component {
 
   componentDidUpdate(prevProps) {
     const { url, options, manual, cache } = this.props;
-    if (url !== prevProps.url && !manual) {
+    if (url && url !== prevProps.url && !manual) {
       this.fetch(url, options);
     }
 

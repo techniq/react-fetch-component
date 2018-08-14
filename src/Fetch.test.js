@@ -262,6 +262,25 @@ describe('fetching', () => {
     expect(fetchMock.called('*')).toBe(false);
   });
 
+  it('does not re-fetch if url changes to "false"', async () => {
+    const url = 'http://localhost/foo';
+    const data = { name: 'foo' };
+    fetchMock.get(url, data);
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />);
+
+    // Initial url
+    const { rerender } = render(<Fetch url={url}>{mockChildren}</Fetch>);
+
+    // Change url
+    rerender(<Fetch url={false}>{mockChildren}</Fetch>);
+
+    expect(mockChildren.mock.calls.length).toBe(3);
+
+    expect(fetchMock.calls(url).length).toBe(1);
+  });
+
   it('does not fetch if url prop is an empty string', async () => {
     const data = { hello: 'world' };
     fetchMock.once('*', data);
