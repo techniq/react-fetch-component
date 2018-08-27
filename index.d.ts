@@ -41,10 +41,10 @@ export interface FetchProps<TData> {
   as?:
     | 'auto'
     | BodyMethods
-    | ((response) => void)
-    | { [type: string]: (res) => Promise<any> }
+    | ((response: TData) => void)
+    | { [type: string]: (res: TData) => Promise<any> }
   fetchFunction?: (url: string, options: object) => Promise<any>
-  onDataChange?: (newData, data) => any
+  onDataChange?: (newData: TData, data: TData) => any
   onChange?: (result: FetchResult<TData>) => void
   children: (result: FetchResult<TData>) => React.ReactNode | React.ReactNode
 }
