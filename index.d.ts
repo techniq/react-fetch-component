@@ -1,41 +1,29 @@
 import * as React from 'react'
 
-export interface RequestProps {
-  cache: 'default' | 'reload' | 'no-cache'
-  credentials: 'omit' | 'same-origin' | 'include'
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-  mode: 'cors' | 'no-cors' | 'same-origin' | 'navigate'
-  redirect: 'follow' | 'error' | 'manual'
-  referrer: 'client' | 'no-referrer' | string
-  referrerPolicy:
-    | 'no-referrer'
-    | 'no-referrer-when-downgrade'
-    | 'origin'
-    | 'origin-when-cross-origin'
-    | 'same-origin'
-    | 'strict-origin'
-    | 'strict-origin-when-cross-origin'
-    | 'unsafe-url'
+export interface FetchRequestProps {
   url: string
+  options?: RequestInit
 }
 
-export interface Request {
-  url: string
-  options?: Partial<RequestProps>
+export interface FetchUpdateOptions {
+  ignorePreviousData: boolean;
 }
 
 export interface FetchResult<TData> {
   data?: TData
   loading: boolean | null
   error?: Error
-  request: Request
+  request: FetchRequestProps
+  response: Response
+  fetch(url: string, options?: RequestInit, updateOptions?: Partial<FetchUpdateOptions>): void;
+  clearData(): void;
 }
 
 export type BodyMethods = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text'
 
 export interface FetchProps<TData> {
   url: string
-  options?: Partial<RequestProps> | (() => Partial<RequestProps>)
+  options?: RequestInit | (() => RequestInit)
   manual?: boolean
   cache?: boolean | object
   as?:
@@ -43,7 +31,7 @@ export interface FetchProps<TData> {
     | BodyMethods
     | ((response: TData) => void)
     | { [type: string]: (res: TData) => Promise<any> }
-  fetchFunction?: (url: string, options: object) => Promise<any>
+  fetchFunction?: (url: string, options: RequestInit) => Promise<any>
   onDataChange?: (newData: TData, data: TData) => any
   onChange?: (result: FetchResult<TData>) => void
   children: (result: FetchResult<TData>) => React.ReactNode | React.ReactNode
