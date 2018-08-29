@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { parseBody, renderChildren } from './utils';
+import { parseBody, isFunction, isObject } from './utils';
 import SimpleCache from './SimpleCache';
 
 const FetchContext = React.createContext({});
@@ -26,14 +26,14 @@ export default class Fetch extends Component {
   promises = [];
 
   getOptions(options) {
-    return typeof options === 'function' ? options() : options;
+    return isFunction(options) ? options() : options;
   }
 
   setCache(cache) {
     this.cache =
       this.props.cache === true
         ? new SimpleCache()
-        : typeof this.props.cache === 'object'
+        : isObject(this.props.cache)
           ? this.props.cache
           : null;
   }
@@ -44,7 +44,7 @@ export default class Fetch extends Component {
 
     this.setCache(cache);
 
-    if (typeof onChange === 'function') {
+    if (isFunction(onChange)) {
       onChange(this.state);
     }
 
@@ -92,9 +92,9 @@ export default class Fetch extends Component {
         .fetchFunction(url, options)
         .then(response => {
           const dataPromise =
-            typeof as === 'function'
+            isFunction(as)
               ? as(response)
-              : typeof as === 'object'
+              : isObject(as)
                 ? parseBody(response, as)
                 : as === 'auto'
                   ? parseBody(response)
@@ -168,7 +168,7 @@ export default class Fetch extends Component {
     if (
       nextState.data &&
       nextState.data !== this.state.data &&
-      typeof onDataChange === 'function'
+      isFunction(onDataChange)
     ) {
       data = onDataChange(
         nextState.data,
@@ -176,7 +176,7 @@ export default class Fetch extends Component {
       );
     }
 
-    if (typeof onChange === 'function') {
+    if (isFunction(onChange)) {
       // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
       onChange({
         ...this.state,
@@ -197,7 +197,7 @@ export default class Fetch extends Component {
 
     return (
       <FetchContext.Provider value={this.state}>
-        {typeof children === 'function' ? (
+        {isFunction(children) ? (
           <FetchContext.Consumer>{children}</FetchContext.Consumer>
         ) : (
           children
