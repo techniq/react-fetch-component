@@ -20,7 +20,7 @@ export default class Fetch extends Component {
     },
     fetch: this.fetch.bind(this),
     clearData: this.clearData.bind(this),
-    loading: null
+    loading: this.props.manual ? null : true
   };
   cache = null;
   promises = [];

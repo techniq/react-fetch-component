@@ -24,7 +24,7 @@ describe('basic', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -61,7 +61,7 @@ describe('basic', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -88,7 +88,7 @@ describe('basic', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -136,7 +136,7 @@ describe('basic', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -185,7 +185,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -234,7 +234,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -255,7 +255,7 @@ describe('fetching', () => {
 
     // // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -295,7 +295,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -426,12 +426,12 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
     // Setting the url but no fetch issued yet
-    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: null });
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true });
 
     // Loading...
     expect(mockChildren.mock.calls[2][0]).toMatchObject({
@@ -470,7 +470,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -520,7 +520,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -582,7 +582,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: { url: url1 }
     });
 
@@ -659,7 +659,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -779,7 +779,7 @@ describe('fetching', () => {
 
     // Initial state
     expect(nonDebouncedMockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
     // Loading request 1
@@ -839,7 +839,7 @@ describe('fetching', () => {
     // TODO: Determine why there are 3 data loaded states instead of 4 (and would be nice if there was only 1)
     // Initial state
     expect(debouncedMockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
     // Loading request 1
@@ -902,7 +902,7 @@ describe('body passing', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -941,7 +941,7 @@ describe('body passing', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -981,7 +981,7 @@ describe('body passing', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1025,7 +1025,7 @@ describe('body passing', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1072,7 +1072,7 @@ it('supports "as" as an object with Content-Type for custom body parsing', async
 
   // Initial state
   expect(mockChildren.mock.calls[0][0]).toMatchObject({
-    loading: null,
+    loading: true,
     request: {}
   });
 
@@ -1108,7 +1108,7 @@ describe('error handling', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1155,7 +1155,7 @@ describe('error handling', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1199,7 +1199,7 @@ describe('error handling', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1277,7 +1277,7 @@ describe('cache', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1359,7 +1359,7 @@ describe('cache', () => {
     // Instance1
     await wait(() => expect(mockChildren1.mock.calls.length).toBe(3));
     expect(mockChildren1.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
     expect(mockChildren1.mock.calls[1][0]).toMatchObject({
@@ -1376,7 +1376,7 @@ describe('cache', () => {
     // Instance2
     await wait(() => expect(mockChildren2.mock.calls.length).toBe(3));
     expect(mockChildren2.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
     expect(mockChildren1.mock.calls[1][0]).toMatchObject({
@@ -1421,7 +1421,7 @@ describe('cache', () => {
     // Instance1
     await wait(() => expect(mockChildren1.mock.calls.length).toBe(3));
     expect(mockChildren1.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
     expect(mockChildren1.mock.calls[1][0]).toMatchObject({
@@ -1438,7 +1438,7 @@ describe('cache', () => {
     // Instance2
     await wait(() => expect(mockChildren2.mock.calls.length).toBe(2));
     expect(mockChildren2.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
     expect(mockChildren2.mock.calls[1][0]).toMatchObject({
@@ -1516,7 +1516,7 @@ describe('onChange', () => {
     await wait(() => expect(mockOnChange.mock.calls.length).toBe(3));
 
     // // Initial state
-    expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null });
+    expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: true });
 
     // // Loading...
     expect(mockOnChange.mock.calls[1][0]).toMatchObject({
@@ -1549,7 +1549,7 @@ describe('onChange', () => {
     await wait(() => expect(fetchMock.called(url)).toBe(true));
 
     // // Initial state
-    expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null });
+    expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: true });
 
     // // Loading...
     expect(mockOnChange.mock.calls[1][0]).toMatchObject({
@@ -1590,7 +1590,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1639,7 +1639,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockOnChange.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1681,7 +1681,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1724,7 +1724,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1783,7 +1783,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1872,7 +1872,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -1961,7 +1961,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -2048,7 +2048,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -2154,7 +2154,7 @@ describe('onDataChange', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -2268,7 +2268,7 @@ describe('context', () => {
 
     // Initial state
     expect(mockChildren.mock.calls[0][0]).toMatchObject({
-      loading: null,
+      loading: true,
       request: {}
     });
 
@@ -2326,7 +2326,7 @@ describe('context', () => {
   expect(mockChildren.mock.calls.length).toBe(3);
 
   // // Initial state
-  expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: null });
+  expect(mockOnChange.mock.calls[0][0]).toMatchObject({ loading: true });
 
   // // Loading...
   expect(mockOnChange.mock.calls[1][0]).toMatchObject({ loading: true, request: {} });
