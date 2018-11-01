@@ -15,7 +15,7 @@ export interface FetchResult<TData> {
   error?: Error
   request: FetchRequestProps
   response: Response
-  fetch(url: string, options?: RequestInit, updateOptions?: Partial<FetchUpdateOptions>): void;
+  fetch(url?: string | null, options?: RequestInit, updateOptions?: Partial<FetchUpdateOptions>): void;
   clearData(): void;
 }
 
