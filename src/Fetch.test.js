@@ -460,7 +460,8 @@ describe('fetching', () => {
 
     // Mount component but should not issue request
     const { rerender } = render(<Fetch url={url}>{mockChildren}</Fetch>);
-    expect(mockChildren.mock.calls.length).toBe(2);
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
+    await wait(() => expect(fetchMock.calls(url).length).toBe(1));
 
     // Set url to issue request
     rerender(<Fetch url={url}>{mockChildren}</Fetch>);
@@ -477,13 +478,15 @@ describe('fetching', () => {
     // Setting the url but no fetch issued yet
     expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true });
 
-    // Re-render but no fetch
+    // Data loaded
     expect(mockChildren.mock.calls[2][0]).toMatchObject({
-      loading: true,
-      request: {}
+      loading: false,
+      data,
+      request: {},
+      response: {}
     });
 
-    // Data loaded
+    // Re-render but no fetch
     expect(mockChildren.mock.calls[3][0]).toMatchObject({
       loading: false,
       data,
@@ -707,10 +710,18 @@ describe('fetching', () => {
     const data = { hello: 'world' };
     fetchMock.once(url, data);
 
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />);
+
     const mockFetch = jest.fn();
     mockFetch.mockImplementation(fetch);
 
-    const {} = render(<Fetch url={url} fetchFunction={mockFetch} />);
+    const {} = render(
+      <Fetch url={url} fetchFunction={mockFetch}>
+        {mockChildren}
+      </Fetch>
+    );
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
 
     expect(mockFetch).toBeCalledWith('http://localhost', undefined);
   });
@@ -1045,52 +1056,52 @@ describe('body passing', () => {
 
     expect(fetchMock.called(url)).toBe(true);
   });
-});
 
-it('supports "as" as an object with Content-Type for custom body parsing', async () => {
-  const url = 'http://localhost';
-  const date = new Date();
-  const data = { someDate: date.toISOString() };
-  fetchMock.once(url, { body: data });
+  it('supports "as" as an object with Content-Type for custom body parsing', async () => {
+    const url = 'http://localhost';
+    const date = new Date();
+    const data = { someDate: date.toISOString() };
+    fetchMock.once(url, { body: data });
 
-  const mockChildren = jest.fn();
-  mockChildren.mockReturnValue(<div />);
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />);
 
-  const {} = render(
-    <Fetch
-      url={url}
-      as={{
-        'application/json': async res => JSON.parse(await res.text(), reviver)
-      }}
-    >
-      {mockChildren}
-    </Fetch>
-  );
+    const {} = render(
+      <Fetch
+        url={url}
+        as={{
+          'application/json': async res => JSON.parse(await res.text(), reviver)
+        }}
+      >
+        {mockChildren}
+      </Fetch>
+    );
 
-  // Once for initial, once for loading, and once for response
-  await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
+    // Once for initial, once for loading, and once for response
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
 
-  // Initial state
-  expect(mockChildren.mock.calls[0][0]).toMatchObject({
-    loading: true,
-    request: {}
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({
+      loading: true,
+      request: {}
+    });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({
+      loading: true,
+      request: {}
+    });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
+      loading: false,
+      data: { someDate: date },
+      request: {},
+      response: {}
+    });
+
+    expect(fetchMock.called(url)).toBe(true);
   });
-
-  // Loading...
-  expect(mockChildren.mock.calls[1][0]).toMatchObject({
-    loading: true,
-    request: {}
-  });
-
-  // Data loaded
-  expect(mockChildren.mock.calls[2][0]).toMatchObject({
-    loading: false,
-    data: { someDate: date },
-    request: {},
-    response: {}
-  });
-
-  expect(fetchMock.called(url)).toBe(true);
 });
 
 describe('error handling', () => {
@@ -1254,7 +1265,7 @@ describe('cache', () => {
         {mockChildren}
       </Fetch>
     );
-    expect(fetchMock.calls(url1).length).toBe(1);
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
 
     // Second request
     rerender(
@@ -1262,7 +1273,7 @@ describe('cache', () => {
         {mockChildren}
       </Fetch>
     );
-    expect(fetchMock.calls(url2).length).toBe(1);
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(6));
 
     // Third, should be pulled from cache
     rerender(
@@ -1270,7 +1281,6 @@ describe('cache', () => {
         {mockChildren}
       </Fetch>
     );
-    expect(fetchMock.calls(url1).length).toBe(1);
 
     // TODO: not sure why 8 rerendered, would expect 7 (initial + 3x loading + 3x data)
     await wait(() => expect(mockChildren.mock.calls.length).toBe(8));
@@ -1287,33 +1297,35 @@ describe('cache', () => {
       request: { url: url1 }
     });
 
-    // Loading second request
-    expect(mockChildren.mock.calls[2][0]).toMatchObject({
-      loading: true,
-      request: { url: url1 }
-    });
-
-    // Loading third request
-    expect(mockChildren.mock.calls[3][0]).toMatchObject({
-      loading: true,
-      request: { url: url2 }
-    });
-
-    // TODO: Not sure
-    expect(mockChildren.mock.calls[4][0]).toMatchObject({
-      loading: true,
-      request: { url: url2 }
-    });
-
     // First request data
-    expect(mockChildren.mock.calls[5][0]).toMatchObject({
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
       loading: false,
       data: data1,
       request: { url: url1 },
       response: {}
     });
 
+    // TODO: Not sure
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({
+      loading: false,
+      request: { url: url1 }
+    });
+
+    // Loading second request
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({
+      loading: true,
+      request: { url: url2 }
+    });
+
     // Second request data
+    expect(mockChildren.mock.calls[5][0]).toMatchObject({
+      loading: false,
+      data: data2,
+      request: { url: url2 },
+      response: {}
+    });
+
+    // TODO: Not sure
     expect(mockChildren.mock.calls[6][0]).toMatchObject({
       loading: false,
       data: data2,
@@ -1354,7 +1366,7 @@ describe('cache', () => {
     );
 
     // Should be called by both instances
-    expect(fetchMock.calls(url).length).toBe(2);
+    await wait(() => expect(fetchMock.calls(url).length).toBe(2));
 
     // Instance1
     await wait(() => expect(mockChildren1.mock.calls.length).toBe(3));
@@ -1416,7 +1428,7 @@ describe('cache', () => {
     );
 
     // Should only be called by the first instance
-    expect(fetchMock.calls(url).length).toBe(1);
+    await wait(() => expect(fetchMock.calls(url).length).toBe(1));
 
     // Instance1
     await wait(() => expect(mockChildren1.mock.calls.length).toBe(3));
@@ -1461,7 +1473,7 @@ describe('children', () => {
 
     const {} = render(<Fetch url={url} />);
 
-    expect(fetchMock.called(url)).toBe(true);
+    await wait(() => expect(fetchMock.called(url)).toBe(true));
   });
 
   it('supports children as single DOM element', async () => {
@@ -1481,27 +1493,6 @@ describe('children', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 });
-
-// TODO: Not possible until React Fiber
-/*it('supports children as multiple DOM elements', async () => {
-  const url = 'http://localhost';
-  const data = { hello: 'world' };
-  fetchMock.once('*', data);
-
-  const wrapper = mount(
-    <Fetch url={url}>
-      <div />
-      <div />
-    </Fetch>
-  );
-  const instance = wrapper.instance();
-
-  await Promise.all(instance.promises);
-  // Once for initial, once for loading, and once for response
-  expect(wrapper.find('div').length).toBe(2);
-
-  expect(fetchMock.called(url)).toBe(true);
-});*/
 
 describe('onChange', () => {
   it('supports onChange prop', async () => {
@@ -2038,9 +2029,11 @@ describe('onDataChange', () => {
         {mockChildren}
       </Fetch>
     );
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
 
     // Fetch request #2
     savedProps.fetch();
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(5));
 
     // Fetch request #3
     savedProps.fetch(url, null, { ignorePreviousData: true });
@@ -2058,32 +2051,32 @@ describe('onDataChange', () => {
       request: {}
     });
 
-    // Loading request 2
-    expect(mockChildren.mock.calls[2][0]).toMatchObject({
-      loading: true,
-      request: {}
-    });
-
-    // Loading request 3
-    expect(mockChildren.mock.calls[3][0]).toMatchObject({
-      loading: true,
-      request: {}
-    });
-
     // Request 1 returned
-    expect(mockChildren.mock.calls[4][0]).toMatchObject({
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
       loading: false,
       data: responseData1,
       request: {},
       response: {}
     });
 
+    // Loading request 2
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({
+      loading: true,
+      request: {}
+    });
+
     // Request 2 returned
-    expect(mockChildren.mock.calls[5][0]).toMatchObject({
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({
       loading: false,
       data: [...responseData1, ...responseData2],
       request: {},
       response: {}
+    });
+
+    // Loading request 3
+    expect(mockChildren.mock.calls[5][0]).toMatchObject({
+      loading: true,
+      request: {}
     });
 
     // Request 3 returned

@@ -1,104 +1,93 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { parseBody, isFunction, isObject } from './utils';
 import SimpleCache from './SimpleCache';
 
 const FetchContext = React.createContext({});
 
-export default class Fetch extends Component {
-  static defaultProps = {
-    as: 'auto',
-    fetchFunction: (url, options) => fetch(url, options)
-  };
+function getOptions(options) {
+  return isFunction(options) ? options() : options;
+}
 
-  static Consumer = FetchContext.Consumer;
+function getCache(props) {
+  return props.cache === true
+    ? new SimpleCache()
+    : isObject(props.cache)
+    ? props.cache
+    : null;
+}
 
-  state = {
+function useMountedRef() {
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  return mountedRef;
+}
+
+function useFetch(props) {
+  const [state, setState] = useState({
     request: {
-      url: this.props.url,
-      options: this.props.options
+      url: props.url,
+      options: props.options
     },
-    fetch: this.fetch.bind(this),
-    clearData: this.clearData.bind(this),
-    loading: this.props.manual ? null : true
-  };
-  cache = null;
-  promises = [];
+    loading: props.manual ? null : true,
+    data: undefined,
+    error: undefined
+  });
+  state.fetch = doFetch;
+  state.clearData = () => setState({ ...state, data: undefined });
 
-  getOptions(options) {
-    return isFunction(options) ? options() : options;
-  }
+  const cache = useRef(getCache(props)); // TODO: Update on cache prop change
+  const promises = useRef([]);
+  const mountedRef = useMountedRef();
 
-  setCache(cache) {
-    this.cache =
-      this.props.cache === true
-        ? new SimpleCache()
-        : isObject(this.props.cache)
-          ? this.props.cache
-          : null;
-  }
+  const as = props.as || 'auto';
+  const fetchFunction =
+    props.fetchFunction || ((url, options) => fetch(url, options));
 
-  componentDidMount() {
-    const { url, options, manual, onChange, cache } = this.props;
-    this.mounted = true;
+  useEffect(
+    () => {
+      if (isFunction(props.onChange)) {
+        props.onChange(state);
+      }
 
-    this.setCache(cache);
+      if (props.url && !props.manual) {
+        doFetch(props.url, props.options);
+      }
+    },
+    [props.url, props.manual]
+  );
 
-    if (isFunction(onChange)) {
-      onChange(this.state);
-    }
-
-    if (url && !manual) {
-      this.fetch(url, options);
-    }
-  }
-
-  componentDidUpdate(prevProps) {
-    const { url, options, manual, cache } = this.props;
-    if (url && url !== prevProps.url && !manual) {
-      this.fetch(url, options);
-    }
-
-    if (cache !== prevProps.cache) {
-      this.setCache(cache);
-    }
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
-  }
-
-  fetch(url, options, updateOptions) {
-    let { as, cache } = this.props;
-
+  function doFetch(url, options, updateOptions) {
     if (url == null) {
-      url = this.props.url;
+      url = props.url;
     }
 
-    options = this.getOptions(options || this.props.options);
+    options = getOptions(options || props.options);
     const request = { url, options };
 
-    if (this.cache && this.cache.get(url)) {
+    if (cache.current && cache.current.get(url)) {
       // Restore cached state
-      const promise = this.cache.get(url);
-      promise.then(cachedState =>
-        this.update(cachedState, promise, updateOptions)
-      );
-      this.promises.push(promise);
+      const promise = cache.current.get(url);
+      promise.then(cachedState => update(cachedState, promise, updateOptions));
+      promises.current.push(promise);
     } else {
-      this.update({ request, loading: true }, null, updateOptions);
+      update({ request, loading: true }, null, updateOptions);
 
-      const promise = this.props
-        .fetchFunction(url, options)
+      const promise = fetchFunction(url, options)
         .then(response => {
-          const dataPromise =
-            isFunction(as)
-              ? as(response)
-              : isObject(as)
-                ? parseBody(response, as)
-                : as === 'auto'
-                  ? parseBody(response)
-                  : response[as]();
+          const dataPromise = isFunction(as)
+            ? as(response)
+            : isObject(as)
+            ? parseBody(response, as)
+            : as === 'auto'
+            ? parseBody(response)
+            : response[as]();
 
           return dataPromise
             .then(data => ({ response, data }))
@@ -113,7 +102,7 @@ export default class Fetch extends Component {
             response
           };
 
-          this.update(newState, promise, updateOptions);
+          update(newState, promise, updateOptions);
 
           return newState;
         })
@@ -126,7 +115,7 @@ export default class Fetch extends Component {
             loading: false
           };
 
-          this.update(newState, promise, updateOptions);
+          update(newState, promise, updateOptions);
 
           // Rethrow so not to swallow errors, especially from errors within handlers (children func / onChange)
           throw error;
@@ -134,24 +123,20 @@ export default class Fetch extends Component {
           return newState;
         });
 
-      this.promises.push(promise);
+      promises.current.push(promise);
 
-      if (this.cache) {
-        this.cache.set(url, promise);
+      if (cache.current) {
+        cache.current.set(url, promise);
       }
 
       return promise;
     }
   }
 
-  clearData() {
-    this.setState({ data: undefined });
-  }
-
-  update(nextState, currentPromise, options = {}) {
+  function update(nextState, currentPromise, options = {}) {
     if (currentPromise) {
       // Handle (i.e. ignore) promises resolved out of order from requests
-      const index = this.promises.indexOf(currentPromise);
+      const index = promises.current.indexOf(currentPromise);
       if (index === -1) {
         // Ignore update as a later request/promise has already been processed
         return;
@@ -159,50 +144,52 @@ export default class Fetch extends Component {
 
       // Remove currently resolved promise and any outstanding promises
       // (which will cause them to be ignored when they do resolve/reject)
-      this.promises.splice(0, index + 1);
+      promises.current.splice(0, index + 1);
     }
 
-    const { onChange, onDataChange } = this.props;
+    const { onChange, onDataChange } = props;
 
     let data = undefined;
     if (
       nextState.data &&
-      nextState.data !== this.state.data &&
+      nextState.data !== state.data &&
       isFunction(onDataChange)
     ) {
       data = onDataChange(
         nextState.data,
-        options.ignorePreviousData ? undefined : this.state.data
+        options.ignorePreviousData ? undefined : state.data
       );
     }
 
     if (isFunction(onChange)) {
       // Always call onChange even if unmounted.  Useful for `POST` requests with a redirect
       onChange({
-        ...this.state,
+        ...state,
         ...nextState,
         ...(data !== undefined && { data })
       });
     }
 
     // Ignore passing state down if no longer mounted
-    if (this.mounted) {
+    if (mountedRef.current) {
       // If `onDataChange` prop returned a value, we use it for data passed down to the children function
-      this.setState({ ...nextState, ...(data !== undefined && { data }) });
+      setState({ ...state, ...nextState, ...(data !== undefined && { data }) });
     }
   }
 
-  render() {
-    const { children } = this.props;
-
-    return (
-      <FetchContext.Provider value={this.state}>
-        {isFunction(children) ? (
-          <FetchContext.Consumer>{children}</FetchContext.Consumer>
-        ) : (
-          children
-        )}
-      </FetchContext.Provider>
-    );
-  }
+  return state;
 }
+
+const Fetch = ({ children, ...props }) => (
+  <FetchContext.Provider value={useFetch(props)}>
+    {isFunction(children) ? (
+      <FetchContext.Consumer>{children}</FetchContext.Consumer>
+    ) : (
+      children
+    )}
+  </FetchContext.Provider>
+);
+Fetch.Consumer = FetchContext.Consumer;
+
+export default Fetch;
+export { useFetch };
