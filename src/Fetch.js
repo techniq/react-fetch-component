@@ -191,5 +191,5 @@ const Fetch = ({ children, ...props }) => (
 );
 Fetch.Consumer = FetchContext.Consumer;
 
-export default Fetch;
 export { useFetch };
+export default Fetch;
