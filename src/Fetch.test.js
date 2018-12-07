@@ -406,6 +406,54 @@ describe('fetching', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 
+  it('supports delaying the initial fetch by removing manual prop', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />);
+
+    // Mount component but should not issue request
+    const { rerender } = render(
+      <Fetch url={url} manual>
+        {mockChildren}
+      </Fetch>
+    );
+    expect(mockChildren.mock.calls.length).toBe(1);
+
+    // Set url to issue request
+    rerender(<Fetch url={url}>{mockChildren}</Fetch>);
+
+    // Once for mount, once for the delayed setting of url, once for loading, and once for response
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(4));
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({
+      loading: null,
+      request: {}
+    });
+
+    // Setting the manual prop but no fetch issued yet
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: null });
+
+    // Loading...
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
+      loading: true,
+      request: {}
+    });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({
+      loading: false,
+      data,
+      request: {},
+      response: {}
+    });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
   it('supports delaying the initial fetch by changing url prop', async () => {
     const url = 'http://localhost';
     const data = { hello: 'world' };
