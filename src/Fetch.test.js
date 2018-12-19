@@ -2329,6 +2329,56 @@ describe('context', () => {
 
     expect(fetchMock.called(url)).toBe(true);
   });
+
+  it('supports calling "fetch" from consumer', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    let savedProps = null;
+
+    const mockChildren = jest.fn(props => {
+      savedProps = props;
+      return <div />;
+    });
+
+    const MyConsumer = () => <Fetch.Consumer>{mockChildren}</Fetch.Consumer>;
+
+    const {} = render(
+      <Fetch url={url} manual>
+        <MyConsumer />
+      </Fetch>
+    );
+
+    expect(fetchMock.called(url)).toBe(false); // no request made
+    savedProps.fetch();
+    expect(fetchMock.called(url)).toBe(true); // request made
+
+    // Once for initial and once for loading, but should not be called when the response is returned
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({
+      loading: null,
+      request: {}
+    });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({
+      loading: true,
+      request: {}
+    });
+
+    // Data returned
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
+      loading: false,
+      data,
+      request: {},
+      response: {}
+    });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
 });
 
 // TODO: Having difficulting testing/mocking this
