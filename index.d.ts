@@ -38,7 +38,6 @@ export interface FetchProps<TData = any> {
   fetchFunction?: (url: string, options: RequestInit) => Promise<any>;
   onDataChange?: (newData: TData, data: TData) => any;
   onChange?: (result: FetchResult<TData>) => void;
-  children: (result: FetchResult<TData>) => React.ReactNode | React.ReactNode;
 }
 
 export function useFetch<TData = any>(
@@ -46,7 +45,11 @@ export function useFetch<TData = any>(
 ): FetchResult<TData>;
 
 export default class Fetch<TData = any> extends React.Component<
-  FetchProps<TData>
+  FetchProps<TData> & {
+    children?: (
+      result: FetchResult<TData>
+    ) => React.ReactNode | React.ReactNode;
+  }
 > {
   // Passing any to FetchResult as unable to use TData
   static Consumer: React.Consumer<FetchResult<any>>;
