@@ -41,6 +41,10 @@ export interface FetchProps<TData = any> {
   children: (result: FetchResult<TData>) => React.ReactNode | React.ReactNode;
 }
 
+export function useFetch<TData = any>(
+  props: FetchProps<TData>
+): FetchResult<TData>;
+
 export default class Fetch<TData = any> extends React.Component<
   FetchProps<TData>
 > {
