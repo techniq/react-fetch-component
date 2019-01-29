@@ -54,3 +54,5 @@ export default class Fetch<TData = any> extends React.Component<
   // Passing any to FetchResult as unable to use TData
   static Consumer: React.Consumer<FetchResult<any>>;
 }
+
+export const FetchContext: React.Context<FetchResult<TData>>;
