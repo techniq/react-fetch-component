@@ -38,6 +38,7 @@ export interface FetchProps<TData = any> {
   fetchFunction?: (url: string, options: RequestInit) => Promise<any>;
   onDataChange?: (newData: TData, data: TData) => any;
   onChange?: (result: FetchResult<TData>) => void;
+  deps?: [any];
 }
 
 export function useFetch<TData = any>(

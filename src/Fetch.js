@@ -60,7 +60,7 @@ function useFetch(props) {
         doFetch(props.url, props.options);
       }
     },
-    [props.url, props.manual]
+    [props.url, props.manual, ...(props.deps || [])]
   );
 
   function doFetch(url, options, updateOptions) {

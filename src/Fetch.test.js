@@ -454,7 +454,7 @@ describe('fetching', () => {
     expect(fetchMock.called(url)).toBe(true);
   });
 
-  it('supports delaying the initial fetch by changing url prop', async () => {
+  it('supports delaying the initial fetch by adding url prop', async () => {
     const url = 'http://localhost';
     const data = { hello: 'world' };
     fetchMock.once(url, data);
@@ -488,6 +488,134 @@ describe('fetching', () => {
     });
 
     // Data loaded
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({
+      loading: false,
+      data,
+      request: {},
+      response: {}
+    });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('supports triggering new fetch if deps change', async () => {
+    const url = 'http://localhost/1';
+    const data = { foo: 1 };
+    fetchMock.mock(url, data);
+
+    let savedProps = null;
+
+    const mockChildren = jest.fn(props => {
+      savedProps = props;
+      return <div />;
+    });
+
+    const { rerender } = render(
+      <Fetch url={url} deps={[1]}>
+        {mockChildren}
+      </Fetch>
+    );
+
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
+    expect(fetchMock.called(url)).toBe(true);
+
+    rerender(
+      <Fetch url={url} deps={[2]}>
+        {mockChildren}
+      </Fetch>
+    );
+
+    // 1x initial, 2x loading, 2x data, 1 prop change (deps)
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(6));
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({
+      loading: true,
+      request: { url }
+    });
+
+    // Loading...
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({
+      loading: true,
+      request: { url }
+    });
+
+    // Data returned
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
+      loading: false,
+      data,
+      request: { url },
+      response: {}
+    });
+
+    // Deps change...
+    expect(mockChildren.mock.calls[3][0]).toMatchObject({
+      loading: false,
+      request: { url }
+    });
+
+    // Loading...
+    expect(mockChildren.mock.calls[4][0]).toMatchObject({
+      loading: true,
+      request: { url }
+    });
+
+    // Data returned
+    expect(mockChildren.mock.calls[5][0]).toMatchObject({
+      loading: false,
+      data,
+      request: { url },
+      response: {}
+    });
+
+    expect(fetchMock.called(url)).toBe(true);
+  });
+
+  it('does not re-fetch if deps do not change and component is re-rendered', async () => {
+    const url = 'http://localhost';
+    const data = { hello: 'world' };
+    fetchMock.once(url, data);
+
+    const mockChildren = jest.fn();
+    mockChildren.mockReturnValue(<div />);
+
+    // Mount component but should not issue request
+    const { rerender } = render(
+      <Fetch url={url} deps={[1]}>
+        {mockChildren}
+      </Fetch>
+    );
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(3));
+    await wait(() => expect(fetchMock.calls(url).length).toBe(1));
+
+    // Re-render without changing url or deps
+    rerender(
+      <Fetch url={url} deps={[1]}>
+        {mockChildren}
+      </Fetch>
+    );
+
+    // Once for mount, once for the delayed setting of url, once for loading, and once for response
+    await wait(() => expect(mockChildren.mock.calls.length).toBe(4));
+
+    // Initial state
+    expect(mockChildren.mock.calls[0][0]).toMatchObject({
+      loading: true,
+      request: {}
+    });
+
+    // Setting the url but no fetch issued yet
+    expect(mockChildren.mock.calls[1][0]).toMatchObject({ loading: true });
+
+    // Data loaded
+    expect(mockChildren.mock.calls[2][0]).toMatchObject({
+      loading: false,
+      data,
+      request: {},
+      response: {}
+    });
+
+    // Re-render but no fetch
     expect(mockChildren.mock.calls[3][0]).toMatchObject({
       loading: false,
       data,
