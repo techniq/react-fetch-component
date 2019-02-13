@@ -9,10 +9,10 @@ export interface FetchUpdateOptions {
   ignorePreviousData: boolean;
 }
 
-export interface FetchResult<TData = any> {
+export interface FetchResult<TData = any, TError = Error> {
   data?: TData;
   loading: boolean | null;
-  error?: Error;
+  error?: TError;
   request: FetchRequestProps;
   response: Response;
   fetch(
@@ -25,7 +25,7 @@ export interface FetchResult<TData = any> {
 
 export type BodyMethods = 'arrayBuffer' | 'blob' | 'formData' | 'json' | 'text';
 
-export interface FetchProps<TData = any> {
+export interface FetchProps<TData = any, TError = Error> {
   url: string;
   options?: RequestInit | (() => RequestInit);
   manual?: boolean;
@@ -37,18 +37,18 @@ export interface FetchProps<TData = any> {
     | { [type: string]: (res: TData) => Promise<any> };
   fetchFunction?: (url: string, options: RequestInit) => Promise<any>;
   onDataChange?: (newData: TData, data: TData) => any;
-  onChange?: (result: FetchResult<TData>) => void;
+  onChange?: (result: FetchResult<TData, TError>) => void;
   deps?: [any];
 }
 
-export function useFetch<TData = any>(
-  props: FetchProps<TData>
-): FetchResult<TData>;
+export function useFetch<TData = any, TError = Error>(
+  props: FetchProps<TData, TError>
+): FetchResult<TData, TError>;
 
-export default class Fetch<TData = any> extends React.Component<
-  FetchProps<TData> & {
+export default class Fetch<TData = any, TError = Error> extends React.Component<
+  FetchProps<TData, TError> & {
     children?: (
-      result: FetchResult<TData>
+      result: FetchResult<TData, TError>
     ) => React.ReactNode | React.ReactNode;
   }
 > {
@@ -56,4 +56,4 @@ export default class Fetch<TData = any> extends React.Component<
   static Consumer: React.Consumer<FetchResult<any>>;
 }
 
-export const FetchContext: React.Context<FetchResult<TData>>;
+export const FetchContext: React.Context<FetchResult<TData, TError>>;
