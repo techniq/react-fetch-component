@@ -52,6 +52,8 @@ export default class Fetch<TData = any, TError = Error> extends React.Component<
     ) => React.ReactNode | React.ReactNode;
   }
 > {
+  fetch():void;
+  
   // Passing any to FetchResult as unable to use TData
   static Consumer: React.Consumer<FetchResult<any>>;
 }
