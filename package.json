@@ -37,6 +37,9 @@
       "<rootDir>/config/testSetup.js"
     ]
   },
+  "prettier": {
+    "singleQuote": true
+  },
   "dependencies": {},
   "typings": "index.d.ts"
 }
