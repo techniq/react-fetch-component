@@ -50,18 +50,16 @@ function useFetch(props) {
   const fetchFunction =
     props.fetchFunction || ((url, options) => fetch(url, options));
 
-  useEffect(
-    () => {
-      if (isFunction(props.onChange)) {
-        props.onChange(state);
-      }
+  useEffect(() => {
+    if (isFunction(props.onChange)) {
+      // Clear the response even if we do not call doFetch immediately
+      props.onChange({ ...state, response: undefined });
+    }
 
-      if (props.url && !props.manual) {
-        doFetch(props.url, props.options);
-      }
-    },
-    [props.url, props.manual, ...(props.deps || [])]
-  );
+    if (props.url && !props.manual) {
+      doFetch(props.url, props.options);
+    }
+  }, [props.url, props.manual, ...(props.deps || [])]);
 
   function doFetch(url, options, updateOptions) {
     if (url == null) {
