@@ -145,7 +145,7 @@ function useFetch(props) {
       promises.current.splice(0, index + 1);
     }
 
-    const { onChange, onDataChange } = props;
+    const { onChange, onDataChange, onResponseChange } = props;
 
     let data = undefined;
     if (
@@ -157,6 +157,14 @@ function useFetch(props) {
         nextState.data,
         options.ignorePreviousData ? undefined : state.data
       );
+    }
+
+    if (
+      nextState.response &&
+      nextState.response !== state.response &&
+      isFunction(onResponseChange)
+    ) {
+      data = onResponseChange(nextState.response);
     }
 
     if (isFunction(onChange)) {

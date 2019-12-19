@@ -37,6 +37,7 @@ export interface FetchProps<TData = any, TError = Error> {
     | { [type: string]: (res: TData) => Promise<any> };
   fetchFunction?: (url: string, options: RequestInit) => Promise<any>;
   onDataChange?: (newData: TData, data: TData) => any;
+  onResponseChange?: (response: Response) => any;
   onChange?: (result: FetchResult<TData, TError>) => void;
   deps?: [any];
 }
