@@ -33,8 +33,8 @@ export interface FetchProps<TData = any, TError = Error> {
   as?:
     | 'auto'
     | BodyMethods
-    | ((response: TData) => void)
-    | { [type: string]: (res: TData) => Promise<any> };
+    | ((response: Response) => void)
+    | { [type: string]: (res: Response) => Promise<any> };
   fetchFunction?: (url: string, options: RequestInit) => Promise<any>;
   onDataChange?: (newData: TData, data: TData) => any;
   onResponseChange?: (response: Response) => any;
