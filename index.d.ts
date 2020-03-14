@@ -39,7 +39,7 @@ export interface FetchProps<TData = any, TError = Error> {
   onDataChange?: (newData: TData, data: TData) => any;
   onResponseChange?: (response: Response) => any;
   onChange?: (result: FetchResult<TData, TError>) => void;
-  deps?: [any];
+  deps?: React.DependencyList;
 }
 
 export function useFetch<TData = any, TError = Error>(
